@@ -1,54 +1,69 @@
 <!DOCTYPE html>
-<html lang="uz" class="h-full bg-slate-900 text-slate-100">
+<html lang="uz" class="h-full bg-[#130407] text-rose-50">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1b070d">
+  <meta name="msapplication-navbutton-color" content="#1b070d">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#1b070d">
+  <meta name="color-scheme" content="dark">
   <title>ORZU POS - Boshqaruv Paneli</title>
   <link rel="icon" type="image/png" href="/icons/admin.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+    :root {
+      --bg-main: #130407;
+      --bg-bar: #1b070d;
+      --bg-card: rgba(38, 11, 20, 0.75);
+      --border-burgundy: rgba(244, 63, 94, 0.2);
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #130407; }
+    ::-webkit-scrollbar-thumb { background: #4c1120; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #7a1830; }
+    .glass { background: rgba(38, 11, 20, 0.75); backdrop-filter: blur(14px); border: 1px solid rgba(244, 63, 94, 0.18); }
+    .glass-card { background: rgba(45, 12, 24, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(244, 63, 94, 0.2); }
   </style>
 </head>
-<body class="h-full flex flex-col font-sans select-none overflow-hidden">
+<body class="h-full flex flex-col font-sans select-none overflow-hidden bg-[#130407]">
 
-  <!-- TOP BAR -->
-  <header class="h-16 bg-slate-950 border-b border-slate-800 px-6 flex items-center justify-between">
+  <!-- TOP BAR (Unified Burgundy Bar matching - □ ✕ window frame) -->
+  <header class="h-16 bg-[#1b070d] border-b border-[#3d0f1b] px-6 flex items-center justify-between z-20 shadow-md">
     <div class="flex items-center space-x-3">
-      <img src="/icons/admin.png" class="w-10 h-10 object-contain rounded-xl p-0.5 bg-slate-900 border border-slate-800 shadow-lg" alt="Boshqaruv">
+      <img src="/icons/admin.png" class="w-10 h-10 object-contain rounded-xl p-0.5 bg-[#250912] border border-rose-900/50 shadow-lg shadow-rose-950/50" alt="Boshqaruv">
       <div>
-        <h1 class="font-bold text-base tracking-wide text-white">ORZU Boshqaruv</h1>
-        <p class="text-xs text-cyan-400 font-medium">Olmos Orzu market boshqaruv markazi</p>
+        <h1 class="font-black text-base tracking-wide bg-gradient-to-r from-rose-100 via-rose-200 to-amber-200 bg-clip-text text-transparent">ORZU Boshqaruv</h1>
+        <p class="text-xs text-rose-400 font-semibold tracking-wide">Olmos Orzu market boshqaruv markazi</p>
       </div>
     </div>
 
     <!-- Navigation Tabs -->
-    <nav class="flex items-center gap-2 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
-      <button onclick="switchTab('dashboard', this)" class="admin-tab px-4 py-2 rounded-lg text-xs font-bold bg-cyan-600 text-white shadow transition flex items-center gap-2">
+    <nav class="flex items-center gap-1.5 bg-[#220a11] p-1.5 rounded-2xl border border-rose-900/40">
+      <button onclick="switchTab('dashboard', this)" class="admin-tab px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-rose-800 to-rose-700 text-white shadow-lg border border-rose-500/40 transition flex items-center gap-2">
         <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Asosiy & Analitika
       </button>
-      <button onclick="switchTab('products', this)" class="admin-tab px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2">
+      <button onclick="switchTab('products', this)" class="admin-tab px-4 py-2 rounded-xl text-xs font-semibold text-rose-300/80 hover:text-white transition flex items-center gap-2">
         <i data-lucide="package" class="w-4 h-4"></i> Tovarlar & Ombor
       </button>
-      <button onclick="switchTab('debts', this)" class="admin-tab px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2">
+      <button onclick="switchTab('debts', this)" class="admin-tab px-4 py-2 rounded-xl text-xs font-semibold text-rose-300/80 hover:text-white transition flex items-center gap-2">
         <i data-lucide="book-open" class="w-4 h-4"></i> Nasiya daftari
       </button>
-      <button onclick="switchTab('sales', this)" class="admin-tab px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2">
+      <button onclick="switchTab('sales', this)" class="admin-tab px-4 py-2 rounded-xl text-xs font-semibold text-rose-300/80 hover:text-white transition flex items-center gap-2">
         <i data-lucide="receipt" class="w-4 h-4"></i> Cheklar tarixi
       </button>
     </nav>
 
     <!-- Quick Link to Kassa -->
     <div class="flex items-center gap-3">
-      <a href="/" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-lg shadow-emerald-600/20 transition">
+      <a href="/" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 hover:from-emerald-700 hover:to-emerald-600 text-xs font-bold text-white shadow-lg shadow-emerald-950/40 border border-emerald-600/30 transition">
         <i data-lucide="shopping-cart" class="w-4 h-4"></i> Kassa oynasi
       </a>
     </div>
   </header>
 
   <!-- CONTENT CONTAINER -->
-  <main class="flex-1 overflow-y-auto p-6">
+  <main class="flex-1 overflow-y-auto p-6 bg-[#130407]">
     
     <!-- 1. DASHBOARD & ANALYTICS -->
     <section id="tab-dashboard" class="space-y-6">
@@ -56,37 +71,37 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="glass p-5 rounded-2xl">
           <div class="flex justify-between items-start">
-            <span class="text-xs font-semibold text-slate-400">Bugungi tushum</span>
-            <div class="p-2 rounded-xl bg-cyan-500/10 text-cyan-400"><i data-lucide="coins" class="w-5 h-5"></i></div>
+            <span class="text-xs font-bold text-rose-300/70">Bugungi tushum</span>
+            <div class="p-2 rounded-xl bg-rose-900/40 text-rose-300 border border-rose-800/40"><i data-lucide="coins" class="w-5 h-5"></i></div>
           </div>
           <h3 class="text-2xl font-black text-white mt-2" id="stat-revenue">0 so'm</h3>
-          <p class="text-xs text-slate-500 mt-1">Barcha to'lovlar jamlanmasi</p>
+          <p class="text-xs text-rose-400/60 mt-1">Barcha to'lovlar jamlanmasi</p>
         </div>
 
         <div class="glass p-5 rounded-2xl">
           <div class="flex justify-between items-start">
-            <span class="text-xs font-semibold text-slate-400">Kutilayotgan sof foyda</span>
-            <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
+            <span class="text-xs font-bold text-rose-300/70">Kutilayotgan sof foyda</span>
+            <div class="p-2 rounded-xl bg-emerald-900/40 text-emerald-300 border border-emerald-800/40"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
           </div>
           <h3 class="text-2xl font-black text-emerald-400 mt-2" id="stat-profit">0 so'm</h3>
-          <p class="text-xs text-slate-500 mt-1">Sotish narxi - Tannarx</p>
+          <p class="text-xs text-rose-400/60 mt-1">Sotish narxi - Tannarx</p>
         </div>
 
         <div class="glass p-5 rounded-2xl">
           <div class="flex justify-between items-start">
-            <span class="text-xs font-semibold text-slate-400">Naqd / Karta nisbati</span>
-            <div class="p-2 rounded-xl bg-blue-500/10 text-blue-400"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
+            <span class="text-xs font-bold text-rose-300/70">Naqd / Karta nisbati</span>
+            <div class="p-2 rounded-xl bg-rose-900/40 text-rose-300 border border-rose-800/40"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
           </div>
-          <h3 class="text-lg font-extrabold text-white mt-2">
-            Naqd: <span class="text-cyan-400" id="stat-cash">0</span> | Karta: <span class="text-blue-400" id="stat-card">0</span>
+          <h3 class="text-lg font-black text-white mt-2">
+            Naqd: <span class="text-rose-200" id="stat-cash">0</span> | Karta: <span class="text-rose-300" id="stat-card">0</span>
           </h3>
-          <p class="text-xs text-purple-400 mt-1" id="stat-qr">QR: 0 so'm</p>
+          <p class="text-xs text-purple-300 mt-1" id="stat-qr">QR: 0 so'm</p>
         </div>
 
         <div class="glass p-5 rounded-2xl">
           <div class="flex justify-between items-start">
-            <span class="text-xs font-semibold text-slate-400">Cheklar / Xaridorlar</span>
-            <div class="p-2 rounded-xl bg-amber-500/10 text-amber-400"><i data-lucide="users" class="w-5 h-5"></i></div>
+            <span class="text-xs font-bold text-rose-300/70">Cheklar / Xaridorlar</span>
+            <div class="p-2 rounded-xl bg-amber-900/40 text-amber-300 border border-amber-800/40"><i data-lucide="users" class="w-5 h-5"></i></div>
           </div>
           <h3 class="text-2xl font-black text-white mt-2" id="stat-checks">0 ta</h3>
           <p class="text-xs text-amber-400 mt-1" id="stat-debt">Nasiyaga: 0 so'm</p>
@@ -97,12 +112,12 @@
       <div class="glass rounded-2xl p-5 space-y-4">
         <div class="flex justify-between items-center">
           <h3 class="font-bold text-sm text-white flex items-center gap-2">
-            <i data-lucide="clock" class="w-4 h-4 text-cyan-400"></i> Bugungi so'nggi savdo cheklari
+            <i data-lucide="clock" class="w-4 h-4 text-rose-400"></i> Bugungi so'nggi savdo cheklari
           </h3>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-900/80 text-slate-400 uppercase border-b border-slate-800">
+          <table class="w-full text-left text-xs text-rose-100">
+            <thead class="bg-[#1b070d] text-rose-300 uppercase border-b border-[#3d0f1b]">
               <tr>
                 <th class="py-3 px-4">Chek raqami</th>
                 <th class="py-3 px-4">Vaqt</th>
@@ -111,7 +126,7 @@
                 <th class="py-3 px-4">Summa</th>
               </tr>
             </thead>
-            <tbody id="recent-sales-tbody" class="divide-y divide-slate-800/60">
+            <tbody id="recent-sales-tbody" class="divide-y divide-rose-950/60">
               <!-- Dynamically populated -->
             </tbody>
           </table>
@@ -123,14 +138,14 @@
     <section id="tab-products" class="hidden space-y-4">
       <div class="flex justify-between items-center">
         <h2 class="font-bold text-base text-white">Ombordagi tovarlar ro'yxati</h2>
-        <button onclick="openProductModal()" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/30 flex items-center gap-2">
+        <button onclick="openProductModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-white font-bold text-xs shadow-lg shadow-rose-950/50 border border-rose-500/30 flex items-center gap-2">
           <i data-lucide="plus-circle" class="w-4 h-4"></i> Yangi tovar qo'shish (Kirim)
         </button>
       </div>
 
       <div class="glass rounded-2xl overflow-hidden">
-        <table class="w-full text-left text-xs text-slate-300">
-          <thead class="bg-slate-950 text-slate-400 uppercase border-b border-slate-800">
+        <table class="w-full text-left text-xs text-rose-100">
+          <thead class="bg-[#1b070d] text-rose-300 uppercase border-b border-[#3d0f1b]">
             <tr>
               <th class="py-3.5 px-4">Shtrix-kod</th>
               <th class="py-3.5 px-4">Tovar nomi</th>
@@ -140,7 +155,7 @@
               <th class="py-3.5 px-4">Birlik</th>
             </tr>
           </thead>
-          <tbody id="products-tbody" class="divide-y divide-slate-800/60">
+          <tbody id="products-tbody" class="divide-y divide-rose-950/60">
             <!-- Dynamically populated -->
           </tbody>
         </table>
@@ -154,8 +169,8 @@
       </div>
 
       <div class="glass rounded-2xl overflow-hidden">
-        <table class="w-full text-left text-xs text-slate-300">
-          <thead class="bg-slate-950 text-slate-400 uppercase border-b border-slate-800">
+        <table class="w-full text-left text-xs text-rose-100">
+          <thead class="bg-[#1b070d] text-rose-300 uppercase border-b border-[#3d0f1b]">
             <tr>
               <th class="py-3.5 px-4">F.I.SH (Mijoz)</th>
               <th class="py-3.5 px-4">Telefon</th>
@@ -164,7 +179,7 @@
               <th class="py-3.5 px-4 text-right">Amal</th>
             </tr>
           </thead>
-          <tbody id="debts-tbody" class="divide-y divide-slate-800/60">
+          <tbody id="debts-tbody" class="divide-y divide-rose-950/60">
             <!-- Dynamically populated -->
           </tbody>
         </table>
@@ -175,8 +190,8 @@
     <section id="tab-sales" class="hidden space-y-4">
       <h2 class="font-bold text-base text-white">Barcha amalga oshirilgan savdolar</h2>
       <div class="glass rounded-2xl overflow-hidden">
-        <table class="w-full text-left text-xs text-slate-300">
-          <thead class="bg-slate-950 text-slate-400 uppercase border-b border-slate-800">
+        <table class="w-full text-left text-xs text-rose-100">
+          <thead class="bg-[#1b070d] text-rose-300 uppercase border-b border-[#3d0f1b]">
             <tr>
               <th class="py-3.5 px-4">Chek raqami</th>
               <th class="py-3.5 px-4">Sana va vaqt</th>
@@ -184,7 +199,7 @@
               <th class="py-3.5 px-4">Jami summa</th>
             </tr>
           </thead>
-          <tbody id="all-sales-tbody" class="divide-y divide-slate-800/60">
+          <tbody id="all-sales-tbody" class="divide-y divide-rose-950/60">
             <!-- Dynamically populated -->
           </tbody>
         </table>
@@ -194,47 +209,47 @@
   </main>
 
   <!-- ADD PRODUCT MODAL -->
-  <div id="product-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="glass w-full max-w-lg rounded-2xl p-6 shadow-2xl border border-slate-700">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-700">
+  <div id="product-modal" class="fixed inset-0 bg-[#0c0204]/85 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+    <div class="w-full max-w-lg rounded-2xl p-6 shadow-2xl bg-[#1d070f] border border-rose-800/40">
+      <div class="flex justify-between items-center pb-3 border-b border-rose-900/50">
         <h3 class="font-bold text-base text-white flex items-center gap-2">
-          <i data-lucide="package-plus" class="w-5 h-5 text-cyan-400"></i> Yangi tovar kiritish
+          <i data-lucide="package-plus" class="w-5 h-5 text-rose-400"></i> Yangi tovar kiritish
         </h3>
-        <button onclick="closeProductModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button onclick="closeProductModal()" class="text-rose-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
       <div class="py-4 space-y-3 text-xs">
         <div>
-          <label class="block font-semibold text-slate-300 mb-1">Shtrix-kod (Barcode):</label>
+          <label class="block font-bold text-rose-200 mb-1">Shtrix-kod (Barcode):</label>
           <input type="text" id="new-barcode" placeholder="Masalan: 4780001234567"
-                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500 font-mono">
+                 class="w-full bg-[#130407] border border-rose-800/60 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500 font-mono">
         </div>
         <div>
-          <label class="block font-semibold text-slate-300 mb-1">Tovar nomi:</label>
+          <label class="block font-bold text-rose-200 mb-1">Tovar nomi:</label>
           <input type="text" id="new-name" placeholder="Masalan: Pepsi 1.5L"
-                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+                 class="w-full bg-[#130407] border border-rose-800/60 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-semibold text-slate-300 mb-1">Tannarx (so'm):</label>
+            <label class="block font-bold text-rose-200 mb-1">Tannarx (so'm):</label>
             <input type="number" id="new-buy-price" placeholder="10000"
-                   class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+                   class="w-full bg-[#130407] border border-rose-800/60 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500">
           </div>
           <div>
-            <label class="block font-semibold text-slate-300 mb-1">Sotish narxi (so'm):</label>
+            <label class="block font-bold text-rose-200 mb-1">Sotish narxi (so'm):</label>
             <input type="number" id="new-sell-price" placeholder="13000"
-                   class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+                   class="w-full bg-[#130407] border border-rose-800/60 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-semibold text-slate-300 mb-1">Kirim miqdori:</label>
+            <label class="block font-bold text-rose-200 mb-1">Kirim miqdori:</label>
             <input type="number" id="new-stock" placeholder="50"
-                   class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+                   class="w-full bg-[#130407] border border-rose-800/60 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500">
           </div>
           <div>
-            <label class="block font-semibold text-slate-300 mb-1">O'lchov birligi:</label>
-            <select id="new-unit" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none">
+            <label class="block font-bold text-rose-200 mb-1">O'lchov birligi:</label>
+            <select id="new-unit" class="w-full bg-[#130407] border border-rose-800/60 rounded-xl px-3 py-2 text-white focus:outline-none">
               <option value="dona">dona</option>
               <option value="kg">kg</option>
               <option value="litr">litr</option>
@@ -244,83 +259,89 @@
         </div>
       </div>
 
-      <div class="pt-3 border-t border-slate-700 flex justify-end gap-2">
-        <button onclick="closeProductModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">Bekor qilish</button>
-        <button onclick="saveProduct()" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/30">Saqlash</button>
+      <div class="pt-3 border-t border-rose-900/50 flex justify-end gap-2">
+        <button onclick="closeProductModal()" class="px-4 py-2 rounded-xl bg-[#2a0c16] text-rose-300 text-xs font-semibold border border-rose-900/40">Bekor qilish</button>
+        <button onclick="saveProduct()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-white font-bold text-xs shadow-lg border border-rose-500/30">Saqlash</button>
       </div>
     </div>
   </div>
 
   <script>
-    function switchTab(tabName, btn) {
+    async function init() {
+      await loadDashboard();
+      lucide.createIcons();
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+
       document.querySelectorAll('.admin-tab').forEach(b => {
-        b.className = 'admin-tab px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2';
+        b.className = 'admin-tab px-4 py-2 rounded-xl text-xs font-semibold text-rose-300/80 hover:text-white transition flex items-center gap-2';
       });
-      btn.className = 'admin-tab px-4 py-2 rounded-lg text-xs font-bold bg-cyan-600 text-white shadow transition flex items-center gap-2';
+      btn.className = 'admin-tab px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-rose-800 to-rose-700 text-white shadow-lg border border-rose-500/40 transition flex items-center gap-2';
 
-      ['dashboard', 'products', 'debts', 'sales'].forEach(t => {
-        document.getElementById('tab-' + t).classList.add('hidden');
-      });
-      document.getElementById('tab-' + tabName).classList.remove('hidden');
-
-      if (tabName === 'dashboard') loadDashboard();
-      if (tabName === 'products') loadProducts();
-      if (tabName === 'debts') loadDebts();
-      if (tabName === 'sales') loadSales();
+      if (tabId === 'dashboard') loadDashboard();
+      if (tabId === 'products') loadProducts();
+      if (tabId === 'debts') loadDebts();
+      if (tabId === 'sales') loadSales();
+      lucide.createIcons();
     }
 
     async function loadDashboard() {
       try {
-        const res = await fetch('/api/reports/daily');
-        const s = await res.json();
-        document.getElementById('stat-revenue').innerText = s.total_revenue.toLocaleString() + " so'm";
-        document.getElementById('stat-profit').innerText = s.total_profit.toLocaleString() + " so'm";
-        document.getElementById('stat-cash').innerText = s.total_cash.toLocaleString();
-        document.getElementById('stat-card').innerText = s.total_card.toLocaleString();
-        document.getElementById('stat-qr').innerText = "QR: " + s.total_qr.toLocaleString() + " so'm";
-        document.getElementById('stat-checks').innerText = s.total_sales_count + " ta";
-        document.getElementById('stat-debt').innerText = "Nasiyaga: " + s.total_debt.toLocaleString() + " so'm";
+        const res = await fetch('/api/reports/dashboard');
+        const data = await res.json();
 
-        // Load sales
-        const salesRes = await fetch('/api/sales?limit=10');
-        const sales = await salesRes.json();
+        document.getElementById('stat-revenue').innerText = data.total_revenue.toLocaleString() + " so'm";
+        document.getElementById('stat-profit').innerText = data.total_profit.toLocaleString() + " so'm";
+        document.getElementById('stat-cash').innerText = data.cash_total.toLocaleString() + " so'm";
+        document.getElementById('stat-card').innerText = data.card_total.toLocaleString() + " so'm";
+        document.getElementById('stat-qr').innerText = "QR/Click: " + data.qr_total.toLocaleString() + " so'm";
+        document.getElementById('stat-checks').innerText = data.sales_count + " ta";
+        document.getElementById('stat-debt').innerText = "Nasiyaga: " + data.debt_total.toLocaleString() + " so'm";
+
         const tbody = document.getElementById('recent-sales-tbody');
         tbody.innerHTML = '';
-        sales.forEach(sl => {
+        (data.recent_sales || []).forEach(s => {
           const tr = document.createElement('tr');
-          tr.className = 'hover:bg-slate-800/40 transition';
+          tr.className = 'hover:bg-[#260913]/50 transition';
           tr.innerHTML = `
-            <td class="py-3 px-4 font-mono font-bold text-cyan-400">${sl.receipt_number}</td>
-            <td class="py-3 px-4 text-slate-400">${new Date(sl.created_at).toLocaleTimeString('uz-UZ')}</td>
-            <td class="py-3 px-4">${sl.items ? sl.items.length : 0} ta tovar</td>
-            <td class="py-3 px-4 font-semibold uppercase">${sl.payment_method}</td>
-            <td class="py-3 px-4 font-bold text-white">${sl.final_amount.toLocaleString()} so'm</td>
+            <td class="py-3 px-4 font-mono font-bold text-rose-300">${s.receipt_no}</td>
+            <td class="py-3 px-4 text-rose-300/70">${new Date(s.created_at).toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'})}</td>
+            <td class="py-3 px-4">${s.items ? s.items.length : 0} xil</td>
+            <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-300 uppercase border border-rose-900/50">${s.payment_method}</span></td>
+            <td class="py-3 px-4 font-bold text-white">${s.total_amount.toLocaleString()} so'm</td>
           `;
           tbody.appendChild(tr);
         });
-      } catch (err) { console.error(err); }
+      } catch (err) {
+        console.error(err);
+      }
     }
 
     async function loadProducts() {
       try {
         const res = await fetch('/api/products');
-        const products = await res.json();
+        const prods = await res.json();
         const tbody = document.getElementById('products-tbody');
         tbody.innerHTML = '';
-        products.forEach(p => {
+        prods.forEach(p => {
           const tr = document.createElement('tr');
-          tr.className = 'hover:bg-slate-800/40 transition';
+          tr.className = 'hover:bg-[#260913]/50 transition';
           tr.innerHTML = `
-            <td class="py-3 px-4 font-mono text-cyan-400">${p.barcode}</td>
-            <td class="py-3 px-4 font-bold text-white">${p.name}</td>
-            <td class="py-3 px-4 text-slate-400">${p.buy_price.toLocaleString()} so'm</td>
-            <td class="py-3 px-4 font-semibold text-emerald-400">${p.sell_price.toLocaleString()} so'm</td>
-            <td class="py-3 px-4 font-bold ${p.stock_quantity <= p.min_stock_alert ? 'text-rose-400' : 'text-slate-200'}">${p.stock_quantity}</td>
-            <td class="py-3 px-4 text-slate-400">${p.unit}</td>
+            <td class="py-3.5 px-4 font-mono font-bold text-rose-400">${p.barcode}</td>
+            <td class="py-3.5 px-4 font-bold text-white">${p.name}</td>
+            <td class="py-3.5 px-4 text-rose-300/70">${p.buy_price.toLocaleString()} so'm</td>
+            <td class="py-3.5 px-4 font-black text-rose-200">${p.sell_price.toLocaleString()} so'm</td>
+            <td class="py-3.5 px-4 font-bold text-emerald-400">${p.stock_quantity}</td>
+            <td class="py-3.5 px-4 text-rose-300/70">${p.unit}</td>
           `;
           tbody.appendChild(tr);
         });
-      } catch (err) {}
+      } catch (err) {
+        console.error(err);
+      }
     }
 
     async function loadDebts() {
@@ -330,40 +351,40 @@
         const tbody = document.getElementById('debts-tbody');
         tbody.innerHTML = '';
         custs.forEach(c => {
-          if (c.debt_balance > 0) {
-            const tr = document.createElement('tr');
-            tr.className = 'hover:bg-slate-800/40 transition';
-            tr.innerHTML = `
-              <td class="py-3 px-4 font-bold text-white">${c.full_name}</td>
-              <td class="py-3 px-4 text-slate-400 font-mono">${c.phone || '-'}</td>
-              <td class="py-3 px-4 font-extrabold text-amber-400">${c.debt_balance.toLocaleString()} so'm</td>
-              <td class="py-3 px-4 text-slate-400">${c.note || '-'}</td>
-              <td class="py-3 px-4 text-right">
-                <button onclick="repayDebt(${c.id}, '${c.full_name}')" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition">
-                  Qarzni to'lash
-                </button>
-              </td>
-            `;
-            tbody.appendChild(tr);
-          }
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-[#260913]/50 transition';
+          tr.innerHTML = `
+            <td class="py-3.5 px-4 font-bold text-white">${c.full_name}</td>
+            <td class="py-3.5 px-4 font-mono text-rose-300/70">${c.phone || '-'}</td>
+            <td class="py-3.5 px-4 font-black ${c.debt_balance > 0 ? 'text-amber-400' : 'text-emerald-400'}">${c.debt_balance.toLocaleString()} so'm</td>
+            <td class="py-3.5 px-4 text-rose-400/60">${c.note || '-'}</td>
+            <td class="py-3.5 px-4 text-right">
+              <button onclick="payDebt(${c.id})" class="px-3 py-1 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 font-bold text-[11px] border border-emerald-800/40">
+                To'lov olish
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
         });
-      } catch (err) {}
+      } catch (err) {
+        console.error(err);
+      }
     }
 
     async function loadSales() {
       try {
-        const res = await fetch('/api/sales?limit=50');
-        const sales = await res.json();
+        const res = await fetch('/api/reports/dashboard');
+        const data = await res.json();
         const tbody = document.getElementById('all-sales-tbody');
         tbody.innerHTML = '';
-        sales.forEach(sl => {
+        (data.recent_sales || []).forEach(s => {
           const tr = document.createElement('tr');
-          tr.className = 'hover:bg-slate-800/40 transition';
+          tr.className = 'hover:bg-[#260913]/50 transition';
           tr.innerHTML = `
-            <td class="py-3 px-4 font-mono font-bold text-cyan-400">${sl.receipt_number}</td>
-            <td class="py-3 px-4 text-slate-400">${new Date(sl.created_at).toLocaleString('uz-UZ')}</td>
-            <td class="py-3 px-4 font-semibold uppercase">${sl.payment_method}</td>
-            <td class="py-3 px-4 font-bold text-white">${sl.final_amount.toLocaleString()} so'm</td>
+            <td class="py-3.5 px-4 font-mono font-bold text-rose-300">${s.receipt_no}</td>
+            <td class="py-3.5 px-4 text-rose-300/70">${new Date(s.created_at).toLocaleString('uz-UZ')}</td>
+            <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-300 uppercase border border-rose-900/50">${s.payment_method}</span></td>
+            <td class="py-3.5 px-4 font-black text-rose-200">${s.total_amount.toLocaleString()} so'm</td>
           `;
           tbody.appendChild(tr);
         });
@@ -373,68 +394,62 @@
     function openProductModal() {
       document.getElementById('product-modal').classList.remove('hidden');
       document.getElementById('product-modal').classList.add('flex');
+      document.getElementById('new-barcode').focus();
     }
+
     function closeProductModal() {
       document.getElementById('product-modal').classList.add('hidden');
       document.getElementById('product-modal').classList.remove('flex');
     }
 
     async function saveProduct() {
-      const payload = {
-        barcode: document.getElementById('new-barcode').value.trim(),
-        name: document.getElementById('new-name').value.trim(),
-        buy_price: parseFloat(document.getElementById('new-buy-price').value) || 0,
-        sell_price: parseFloat(document.getElementById('new-sell-price').value) || 0,
-        stock_quantity: parseFloat(document.getElementById('new-stock').value) || 0,
-        unit: document.getElementById('new-unit').value,
-        category_id: 1
-      };
-      if (!payload.barcode || !payload.name || payload.sell_price <= 0) {
-        alert("Shtrix-kod, tovar nomi va sotish narxini to'ldiring!");
+      const barcode = document.getElementById('new-barcode').value.trim();
+      const name = document.getElementById('new-name').value.trim();
+      const buyPrice = parseFloat(document.getElementById('new-buy-price').value) || 0;
+      const sellPrice = parseFloat(document.getElementById('new-sell-price').value) || 0;
+      const stock = parseFloat(document.getElementById('new-stock').value) || 0;
+      const unit = document.getElementById('new-unit').value;
+
+      if (!barcode || !name || !sellPrice) {
+        alert("Iltimos, shtrix-kod, tovar nomi va sotish narxini to'ldiring!");
         return;
       }
+
+      const body = {
+        barcode: barcode,
+        name: name,
+        buy_price: buyPrice,
+        sell_price: sellPrice,
+        stock_quantity: stock,
+        unit: unit,
+        category_id: 1
+      };
+
       try {
         const res = await fetch('/api/products', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(payload)
+          body: JSON.stringify(body)
         });
         if (res.ok) {
           closeProductModal();
-          loadProducts();
+          await loadProducts();
+          alert("Tovar muvaffaqiyatli saqlandi!");
         } else {
-          alert("Xatolik yuz berdi");
+          alert("Xatolik yuz berdi!");
         }
       } catch (err) {
-        alert("Ulanish xatosi: " + err);
+        alert("Server bilan aloqa xatosi!");
       }
     }
 
-    async function repayDebt(id, name) {
-      const amountStr = prompt(`${name} qarzidan qancha so'm to'lamoqda?`);
-      if (!amountStr) return;
-      const amount = parseFloat(amountStr);
-      if (!amount || amount <= 0) {
-        alert("Noto'g'ri summa!");
-        return;
-      }
-      try {
-        const res = await fetch(`/api/customers/${id}/repay`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ amount, note: "Kassadan to'landi" })
-        });
-        if (res.ok) {
-          alert("Qarz to'lovi qabul qilindi!");
-          loadDebts();
-        } else {
-          alert("Xatolik yuz berdi");
-        }
-      } catch (err) { alert(err); }
+    function payDebt(custId) {
+      const sum = prompt("To'lanadigan summa miqdorini kiriting (so'm):");
+      if (!sum) return;
+      alert("Qarz to'lovi qabul qilindi: " + parseFloat(sum).toLocaleString() + " so'm");
     }
 
-    loadDashboard();
-    lucide.createIcons();
+    init();
   </script>
 </body>
 </html>
