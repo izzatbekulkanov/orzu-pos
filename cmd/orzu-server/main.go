@@ -41,6 +41,16 @@ func main() {
 	adminFS, _ := fs.Sub(web.WebFS, "admin")
 	iconsFS, _ := fs.Sub(web.WebFS, "icons")
 
+	// /manifest.json -> PWA Manifest
+	app.Get("/manifest.json", func(c *fiber.Ctx) error {
+		manifestBytes, err := web.WebFS.ReadFile("manifest.json")
+		if err != nil {
+			return c.SendStatus(404)
+		}
+		c.Set("Content-Type", "application/json")
+		return c.Send(manifestBytes)
+	})
+
 	// /icons -> Ikonkalar
 	app.Use("/icons", filesystem.New(filesystem.Config{
 		Root:   http.FS(iconsFS),

@@ -257,7 +257,7 @@ func InitTray(port string) error {
 func OpenApp(url string) {
 	edgePath := `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`
 	if _, err := os.Stat(edgePath); err == nil {
-		cmd := exec.Command(edgePath, "--app="+url)
+		cmd := exec.Command(edgePath, "--app="+url, "--force-dark-mode", "--start-maximized")
 		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 		_ = cmd.Start()
 		return
@@ -265,7 +265,7 @@ func OpenApp(url string) {
 
 	edge64 := `C:\Program Files\Microsoft\Edge\Application\msedge.exe`
 	if _, err := os.Stat(edge64); err == nil {
-		cmd := exec.Command(edge64, "--app="+url)
+		cmd := exec.Command(edge64, "--app="+url, "--force-dark-mode", "--start-maximized")
 		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 		_ = cmd.Start()
 		return

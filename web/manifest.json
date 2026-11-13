@@ -1,0 +1,15 @@
+{
+  "name": "ORZU POS — Olmos Orzu market",
+  "short_name": "ORZU POS",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#120408",
+  "theme_color": "#1c0810",
+  "icons": [
+    {
+      "src": "/icons/kassa.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ]
+}

@@ -46,7 +46,7 @@ $sKassa.Save()
 # 2. ORZU Boshqaruv shortcut
 $sAdmin = $wsh.CreateShortcut((Join-Path $desktopDir "ORZU Boshqaruv.lnk"))
 $sAdmin.TargetPath = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
-$sAdmin.Arguments = "--app=http://localhost:8080/admin"
+$sAdmin.Arguments = "--app=http://localhost:8080/admin --force-dark-mode --start-maximized"
 $sAdmin.IconLocation = "D:\ORZU_POS\assets\icons\admin.ico"
 $sAdmin.Save()
 

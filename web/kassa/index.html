@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="uz" class="h-full bg-[#130407] text-rose-50">
+<html lang="uz" class="h-full bg-[#120408] text-rose-50">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#1b070d">
-  <meta name="msapplication-navbutton-color" content="#1b070d">
-  <meta name="apple-mobile-web-app-status-bar-style" content="#1b070d">
+  <meta name="theme-color" content="#1c0810">
+  <meta name="msapplication-navbutton-color" content="#1c0810">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#1c0810">
   <meta name="color-scheme" content="dark">
-  <title>ORZU POS - Olmos Orzu market (Kassa)</title>
+  <title>ORZU POS — Olmos Orzu market (Kassa)</title>
   <link rel="icon" type="image/png" href="/icons/kassa.png">
+  <link rel="manifest" href="/manifest.json">
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -16,191 +17,230 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
-      --bg-main: #130407;
-      --bg-bar: #1b070d;
-      --bg-card: rgba(38, 11, 20, 0.75);
-      --border-burgundy: rgba(244, 63, 94, 0.2);
+      --bg-bar: #1c0810;
+      --bg-main: #120408;
+      --bg-card: #230a14;
+      --border-burgundy: #431221;
+      --border-accent: #be123c;
     }
     /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #130407; }
-    ::-webkit-scrollbar-thumb { background: #4c1120; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #7a1830; }
-    .glass { background: rgba(38, 11, 20, 0.75); backdrop-filter: blur(14px); border: 1px solid rgba(244, 63, 94, 0.18); }
-    .glass-card { background: rgba(45, 12, 24, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(244, 63, 94, 0.2); }
+    ::-webkit-scrollbar-track { background: #120408; }
+    ::-webkit-scrollbar-thumb { background: #451020; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #881337; }
+    .glass { background: rgba(35, 10, 20, 0.85); backdrop-filter: blur(14px); border: 1px solid #431221; }
+    .glass-card { background: #230a14; border: 1px solid #431221; }
   </style>
 </head>
-<body class="h-full flex flex-col font-sans select-none overflow-hidden bg-[#130407]">
+<body class="h-full flex flex-col font-sans select-none overflow-hidden bg-[#120408]">
 
-  <!-- TOP BAR (Unified Burgundy Bar matching - □ ✕ window frame and bottom checkout) -->
-  <header class="h-14 bg-[#1b070d] border-b border-[#3d0f1b] px-4 flex items-center justify-between z-20 shadow-md">
-    <div class="flex items-center space-x-3">
-      <img src="/icons/kassa.png" class="w-9 h-9 object-contain rounded-xl p-0.5 bg-[#250912] border border-rose-900/50 shadow-lg shadow-rose-950/50" alt="Kassa">
+  <!-- TOP BAR (Unified Burgundy Bar matching - □ ✕ window frame & bottom checkout) -->
+  <header class="h-16 bg-[#1c0810] border-b border-[#431221] px-5 flex items-center justify-between z-20 shadow-xl shrink-0">
+    <!-- Brand / Store Info -->
+    <div class="flex items-center space-x-3.5">
+      <img src="/icons/kassa.png" class="w-10 h-10 object-contain rounded-2xl p-1 bg-[#280c18] border border-rose-900/60 shadow-lg shadow-rose-950/60" alt="Kassa">
       <div>
-        <h1 class="font-black text-base tracking-wide bg-gradient-to-r from-rose-100 via-rose-200 to-amber-200 bg-clip-text text-transparent">ORZU POS</h1>
-        <p class="text-xs text-rose-400 font-semibold tracking-wide">Olmos Orzu market</p>
+        <h1 class="font-black text-lg tracking-wide bg-gradient-to-r from-amber-200 via-rose-100 to-rose-300 bg-clip-text text-transparent flex items-center gap-2 leading-none">
+          ORZU POS
+          <span class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-700/50 font-bold flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Faol
+          </span>
+        </h1>
+        <p class="text-xs text-rose-300/80 font-bold tracking-wide mt-1">Olmos Orzu market — Kassa 1</p>
       </div>
-      <span class="ml-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950/60 text-emerald-300 border border-emerald-700/40 flex items-center gap-1.5 shadow-sm">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Kassa Faol
-      </span>
     </div>
 
-    <!-- Quick Barcode input for scanner -->
-    <div class="flex-1 max-w-md mx-6">
+    <!-- Wide Barcode / Search Box -->
+    <div class="flex-1 max-w-xl mx-8">
       <div class="relative">
-        <i data-lucide="barcode" class="w-5 h-5 absolute left-3 top-2.5 text-rose-300/60"></i>
-        <input type="text" id="barcode-input" autofocus placeholder="Shtrix-kodni skanerlang yoki qidiring... (Enter)"
-               class="w-full bg-[#240a12] border border-rose-900/50 rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder-rose-300/40 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition shadow-inner">
+        <i data-lucide="barcode" class="w-5 h-5 absolute left-3.5 top-3 text-rose-400"></i>
+        <input type="text" id="barcode-input" autofocus placeholder="Shtrix-kodni skanerlang yoki tovar nomini yozing... (Enter ↵)"
+               class="w-full bg-[#260c17] border border-rose-900/60 rounded-2xl pl-11 pr-24 py-2.5 text-sm text-white placeholder-rose-300/40 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/30 transition shadow-inner font-medium">
+        <span class="absolute right-3 top-2.5 px-2 py-0.5 rounded-lg bg-rose-950 text-rose-300 border border-rose-900/60 text-[10px] font-mono font-bold">
+          Enter ↵
+        </span>
       </div>
     </div>
 
-    <!-- Actions & User -->
+    <!-- Actions & Controls -->
     <div class="flex items-center space-x-3">
-      <a href="/admin" target="_blank" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#2a0c16] hover:bg-[#38101d] text-xs font-semibold text-rose-200 border border-rose-900/40 transition shadow-sm">
-        <i data-lucide="layout-dashboard" class="w-4 h-4 text-rose-400"></i> Boshqaruv
+      <button onclick="toggleFullscreen()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#280c18] hover:bg-[#381022] text-xs font-bold text-rose-200 border border-rose-900/40 transition shadow-sm" title="To'liq ekran (F11)">
+        <i data-lucide="maximize-2" class="w-4 h-4 text-rose-400"></i>
+        <span class="hidden md:inline">To'liq ekran</span>
+      </button>
+      <a href="/admin" target="_blank" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#280c18] hover:bg-[#381022] text-xs font-bold text-rose-200 border border-rose-900/40 transition shadow-sm">
+        <i data-lucide="layout-dashboard" class="w-4 h-4 text-rose-400"></i>
+        <span class="hidden md:inline">Boshqaruv</span>
       </a>
       <div class="flex items-center gap-2 pl-3 border-l border-rose-900/40">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-900 to-rose-700 flex items-center justify-center text-xs font-black text-white border border-rose-500/40 shadow-sm">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-rose-900 to-rose-700 flex items-center justify-center text-xs font-black text-white border border-rose-500/40 shadow-sm">
           K1
         </div>
         <div class="text-left text-xs leading-tight">
-          <p class="font-bold text-rose-100" id="cashier-name">Kassir 1</p>
-          <p class="text-rose-400/80 font-mono text-[11px]" id="clock-display">--:--</p>
+          <p class="font-bold text-white" id="cashier-name">Kassir</p>
+          <p class="text-rose-400 font-mono text-[11px]" id="clock-display">--:--</p>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- MAIN AREA: Grid of products (left) + Cart & Checkout (right) -->
+  <!-- MAIN WORKSPACE: 2-Column Professional Supermarket Till -->
   <main class="flex-1 flex overflow-hidden">
-    
-    <!-- LEFT: Products & Categories -->
-    <section class="flex-1 flex flex-col bg-[#130407] p-4 overflow-hidden">
-      <!-- Category Tabs -->
-      <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="categories-container">
-        <button class="cat-tab px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-gradient-to-r from-rose-800 to-rose-700 text-white shadow-lg shadow-rose-950/50 border border-rose-500/40" onclick="filterCategory(null, this)">
-          Barcha tovarlar
+
+    <!-- LEFT COLUMN: ACTIVE CART / RECEIPT TABLE (55% Width) -->
+    <section class="w-[55%] flex flex-col bg-[#16050b] border-r border-[#431221] overflow-hidden">
+      <!-- Cart Subheader -->
+      <div class="px-5 py-3 bg-[#1c0810] border-b border-[#431221] flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="receipt" class="w-5 h-5 text-rose-400"></i>
+          <h2 class="font-extrabold text-sm text-white tracking-wide">Xarid Cheki</h2>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-900/40 text-rose-300 border border-rose-800/40" id="cart-item-count">0 tovar</span>
+        </div>
+        <button onclick="clearCart()" class="text-xs text-rose-400 hover:text-rose-300 transition flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg hover:bg-rose-950/40">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Tozalash (Del)
         </button>
       </div>
 
-      <!-- Products Grid -->
-      <div class="flex-1 overflow-y-auto mt-3 pr-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" id="products-grid">
-        <!-- Dynamically rendered -->
+      <!-- Table Header -->
+      <div class="px-5 py-2.5 bg-[#19060e] border-b border-[#431221] grid grid-cols-12 text-[11px] font-bold text-rose-300/70 uppercase tracking-wider shrink-0">
+        <span class="col-span-1 text-center">№</span>
+        <span class="col-span-5">Tovar nomi / Shtrix-kod</span>
+        <span class="col-span-2 text-right">Narxi</span>
+        <span class="col-span-2 text-center">Miqdori</span>
+        <span class="col-span-2 text-right pr-2">Jami</span>
+      </div>
+
+      <!-- Scrollable Cart Table Rows -->
+      <div class="flex-1 overflow-y-auto px-4 py-2 space-y-1.5" id="cart-items">
+        <div class="h-full flex flex-col items-center justify-center text-rose-300/40 space-y-3">
+          <i data-lucide="shopping-bag" class="w-16 h-16 text-rose-900/40"></i>
+          <p class="text-sm font-bold text-rose-200/80">Xarid cheki bo'sh</p>
+          <p class="text-xs text-rose-400/60 text-center max-w-xs">
+            Shtrix-kodni skanerlang yoki o'ng tomondagi tovar kartasini bosing.
+          </p>
+        </div>
       </div>
     </section>
 
-    <!-- RIGHT: Cart Drawer (Seamless Burgundy Theme) -->
-    <aside class="w-96 lg:w-[420px] bg-[#17050a] border-l border-[#3d0f1b] flex flex-col justify-between z-10 shadow-2xl">
-      <!-- Cart Header (Matches Top Bar) -->
-      <div class="p-4 bg-[#1b070d] border-b border-[#3d0f1b] flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <i data-lucide="shopping-bag" class="w-5 h-5 text-rose-400"></i>
-          <h2 class="font-bold text-sm tracking-wide text-white">Xarid Savati</h2>
-          <span class="px-2 py-0.5 rounded-full text-xs font-extrabold bg-rose-900/40 text-rose-300 border border-rose-800/40" id="cart-count">0</span>
+    <!-- RIGHT COLUMN: TOUCH PRODUCT CATALOG & QUICK CARDS (45% Width) -->
+    <section class="w-[45%] flex flex-col bg-[#120408] overflow-hidden">
+      <!-- Category Tabs (Horizontal Scroll) -->
+      <div class="px-4 py-3 bg-[#19060e] border-b border-[#431221] shrink-0">
+        <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-none" id="categories-container">
+          <button class="cat-tab px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap bg-gradient-to-r from-rose-800 to-rose-700 text-white shadow-lg border border-rose-500/40" onclick="filterCategory(null, this)">
+            Barcha tovarlar
+          </button>
         </div>
-        <button onclick="clearCart()" class="text-xs text-rose-400/80 hover:text-rose-300 transition flex items-center gap-1 font-semibold">
-          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Tozalash
+      </div>
+
+      <!-- Products Grid (Big, Readable, Touch-friendly Cards) -->
+      <div class="flex-1 overflow-y-auto p-4 grid grid-cols-2 lg:grid-cols-3 gap-3.5" id="products-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM BAR (Unified Burgundy Bar matching Top Bar exactly) -->
+  <footer class="h-24 bg-[#1c0810] border-t border-[#431221] px-6 flex items-center justify-between z-20 shadow-2xl shrink-0">
+    <!-- Left: Cart Quick Summary & Customer Info -->
+    <div class="flex items-center space-x-6 text-xs">
+      <div class="space-y-0.5">
+        <p class="text-rose-300/70 font-semibold">Jami tovarlar:</p>
+        <p class="text-base font-black text-white" id="bottom-qty-display">0 dona</p>
+      </div>
+      <div class="w-px h-10 bg-rose-900/40"></div>
+      <div class="space-y-0.5">
+        <p class="text-rose-300/70 font-semibold">Chegirma:</p>
+        <p class="text-base font-black text-amber-400" id="discount-display">0 so'm</p>
+      </div>
+      <div class="w-px h-10 bg-rose-900/40"></div>
+      <div class="hidden lg:block text-rose-400/80 text-[11px] font-mono leading-tight">
+        <p>Tezkor tugmalar:</p>
+        <p class="text-rose-200">F2: Naqd | F3: Karta | F4: QR | F5: Nasiya</p>
+      </div>
+    </div>
+
+    <!-- Center/Right: MASSIVE GRAND TOTAL DISPLAY -->
+    <div class="flex items-center space-x-6">
+      <div class="text-right">
+        <span class="block text-xs font-extrabold uppercase tracking-wider text-rose-300/80">JAMI TO'LOV:</span>
+        <span class="text-3xl font-black bg-gradient-to-r from-amber-200 via-rose-100 to-rose-300 bg-clip-text text-transparent font-mono tracking-tight" id="total-display">
+          0 SO'M
+        </span>
+      </div>
+
+      <!-- 4 Prominent Payment Action Buttons -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <button onclick="openPaymentModal('cash')" class="py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 hover:from-emerald-700 hover:to-emerald-600 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-950/40 border border-emerald-600/30 active:scale-95 transition">
+          <i data-lucide="banknote" class="w-4 h-4"></i> Naqd (F2)
+        </button>
+        <button onclick="openPaymentModal('card')" class="py-3 px-4 rounded-xl bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-rose-950/40 border border-rose-500/40 active:scale-95 transition">
+          <i data-lucide="credit-card" class="w-4 h-4"></i> Karta (F3)
+        </button>
+        <button onclick="openPaymentModal('qr')" class="py-3 px-3.5 rounded-xl bg-gradient-to-r from-purple-900 to-purple-800 hover:from-purple-800 hover:to-purple-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg border border-purple-600/30 active:scale-95 transition">
+          <i data-lucide="qr-code" class="w-4 h-4"></i> Click (F4)
+        </button>
+        <button onclick="openPaymentModal('debt')" class="py-3 px-3.5 rounded-xl bg-gradient-to-r from-amber-800 to-amber-700 hover:from-amber-700 hover:to-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg border border-amber-600/30 active:scale-95 transition">
+          <i data-lucide="book-open" class="w-4 h-4"></i> Nasiya (F5)
         </button>
       </div>
-
-      <!-- Cart Items List -->
-      <div class="flex-1 overflow-y-auto p-3 space-y-2 bg-[#130407]" id="cart-items">
-        <div class="h-full flex flex-col items-center justify-center text-rose-400/50 space-y-2">
-          <i data-lucide="scan-barcode" class="w-12 h-12 text-rose-900/60"></i>
-          <p class="text-xs text-center px-4">Savat bo'sh. Shtrix-kodni skanerlang yoki tovar tanlang.</p>
-        </div>
-      </div>
-
-      <!-- Cart Totals & Checkout (Matches Top Bar Tone Exactly) -->
-      <div class="p-4 bg-[#1b070d] border-t border-[#3d0f1b] space-y-3 shadow-2xl">
-        <!-- Subtotal / Discount -->
-        <div class="space-y-1.5 text-xs">
-          <div class="flex justify-between text-rose-300/70">
-            <span>Tovarlar summasi:</span>
-            <span id="subtotal-display" class="font-semibold text-rose-200">0 so'm</span>
-          </div>
-          <div class="flex justify-between text-rose-300/70">
-            <span>Chegirma:</span>
-            <span id="discount-display" class="text-amber-400 font-semibold">0 so'm</span>
-          </div>
-          <div class="flex justify-between items-baseline text-base font-black text-white pt-2.5 border-t border-rose-900/40">
-            <span class="text-rose-100 tracking-wide">TO'LANISHI:</span>
-            <span class="text-2xl font-black bg-gradient-to-r from-rose-200 via-rose-100 to-amber-200 bg-clip-text text-transparent" id="total-display">0 so'm</span>
-          </div>
-        </div>
-
-        <!-- Payment Buttons -->
-        <div class="grid grid-cols-2 gap-2 pt-1">
-          <button onclick="openPaymentModal('cash')" class="py-3 px-3 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 hover:from-emerald-700 hover:to-emerald-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 border border-emerald-600/30 active:scale-95 transition">
-            <i data-lucide="banknote" class="w-4 h-4"></i> Naqd (F2)
-          </button>
-          <button onclick="openPaymentModal('card')" class="py-3 px-3 rounded-xl bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-rose-950/40 border border-rose-500/30 active:scale-95 transition">
-            <i data-lucide="credit-card" class="w-4 h-4"></i> Karta (F3)
-          </button>
-          <button onclick="openPaymentModal('qr')" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-900 to-purple-800 hover:from-purple-800 hover:to-purple-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg border border-purple-600/30 active:scale-95 transition">
-            <i data-lucide="qr-code" class="w-4 h-4"></i> Click / Payme (F4)
-          </button>
-          <button onclick="openPaymentModal('debt')" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-800 to-amber-700 hover:from-amber-700 hover:to-amber-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg border border-amber-600/30 active:scale-95 transition">
-            <i data-lucide="book-open" class="w-4 h-4"></i> Nasiya (F5)
-          </button>
-        </div>
-      </div>
-    </aside>
-  </main>
+    </div>
+  </footer>
 
   <!-- PAYMENT MODAL -->
   <div id="payment-modal" class="fixed inset-0 bg-[#0c0204]/85 backdrop-blur-md hidden items-center justify-center z-50 p-4">
-    <div class="w-full max-w-md rounded-2xl p-6 shadow-2xl bg-[#1d070f] border border-rose-800/40 animate-in fade-in zoom-in-95 duration-150">
+    <div class="w-full max-w-md rounded-3xl p-6 shadow-2xl bg-[#1d070f] border border-rose-800/40 animate-in fade-in zoom-in-95 duration-150">
       <div class="flex justify-between items-center pb-3 border-b border-rose-900/50">
-        <h3 class="font-bold text-base text-white flex items-center gap-2" id="modal-title">
+        <h3 class="font-black text-base text-white flex items-center gap-2" id="modal-title">
           <i data-lucide="wallet" class="w-5 h-5 text-rose-400"></i> To'lovni qabul qilish
         </h3>
         <button onclick="closePaymentModal()" class="text-rose-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
       <div class="py-4 space-y-4">
-        <div class="text-center p-3.5 rounded-xl bg-[#260913] border border-rose-900/40">
-          <p class="text-xs text-rose-300/70 font-medium">Jami to'lov summasi:</p>
-          <p class="text-3xl font-black bg-gradient-to-r from-rose-200 via-rose-100 to-amber-200 bg-clip-text text-transparent mt-0.5" id="modal-amount">0 so'm</p>
+        <div class="text-center p-4 rounded-2xl bg-[#260913] border border-rose-900/40 shadow-inner">
+          <p class="text-xs text-rose-300/70 font-semibold">Jami to'lov summasi:</p>
+          <p class="text-3xl font-black bg-gradient-to-r from-amber-200 via-rose-100 to-rose-200 bg-clip-text text-transparent mt-1 font-mono" id="modal-amount">0 so'm</p>
         </div>
 
-        <!-- Cash input fields -->
+        <!-- Cash Section -->
         <div id="cash-section" class="space-y-3">
           <div>
             <label class="block text-xs font-bold text-rose-200 mb-1">Mijoz bergan summa:</label>
             <input type="number" id="cash-received" oninput="calculateChange()" placeholder="Masalan: 100000"
-                   class="w-full bg-[#130407] border border-rose-800/60 rounded-xl px-4 py-2.5 text-lg font-bold text-emerald-400 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                   class="w-full bg-[#120408] border border-rose-800/60 rounded-xl px-4 py-2.5 text-xl font-black text-emerald-400 focus:outline-none focus:border-rose-500 font-mono shadow-inner">
           </div>
 
-          <!-- Quick notes buttons -->
-          <div class="flex gap-1.5 overflow-x-auto pb-1 text-xs font-bold">
-            <button onclick="setCashAmount(10000)" class="px-2.5 py-1.5 rounded-lg bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">10 000</button>
-            <button onclick="setCashAmount(20000)" class="px-2.5 py-1.5 rounded-lg bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">20 000</button>
-            <button onclick="setCashAmount(50000)" class="px-2.5 py-1.5 rounded-lg bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">50 000</button>
-            <button onclick="setCashAmount(100000)" class="px-2.5 py-1.5 rounded-lg bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">100 000</button>
-            <button onclick="setCashAmount(200000)" class="px-2.5 py-1.5 rounded-lg bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">200 000</button>
+          <!-- Quick Cash Bills -->
+          <div class="flex gap-1.5 overflow-x-auto pb-1 text-xs font-black">
+            <button onclick="setCashAmount(10000)" class="px-3 py-1.5 rounded-xl bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">10 000</button>
+            <button onclick="setCashAmount(20000)" class="px-3 py-1.5 rounded-xl bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">20 000</button>
+            <button onclick="setCashAmount(50000)" class="px-3 py-1.5 rounded-xl bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">50 000</button>
+            <button onclick="setCashAmount(100000)" class="px-3 py-1.5 rounded-xl bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">100 000</button>
+            <button onclick="setCashAmount(200000)" class="px-3 py-1.5 rounded-xl bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">200 000</button>
           </div>
 
-          <div class="flex justify-between items-center p-3 rounded-xl bg-[#260913] border border-rose-900/40 text-sm">
-            <span class="text-rose-300/80 font-medium">Qaytim:</span>
-            <span class="font-black text-base text-amber-400" id="change-display">0 so'm</span>
+          <div class="flex justify-between items-center p-3.5 rounded-2xl bg-[#260913] border border-rose-900/40">
+            <span class="text-rose-300/80 font-bold text-xs">Qaytim:</span>
+            <span class="font-black text-lg text-amber-400 font-mono" id="change-display">0 so'm</span>
           </div>
         </div>
 
         <!-- Customer Select (for Nasiya) -->
         <div id="customer-section" class="hidden space-y-2">
           <label class="block text-xs font-bold text-rose-200">Nasiyador mijozni tanlang:</label>
-          <select id="customer-select" class="w-full bg-[#130407] border border-rose-800/60 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
-            <!-- Dynamically populated -->
+          <select id="customer-select" class="w-full bg-[#120408] border border-rose-800/60 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
+            <!-- Populated dynamically -->
           </select>
         </div>
       </div>
 
       <div class="pt-3 border-t border-rose-900/50 flex gap-2">
-        <button onclick="closePaymentModal()" class="w-1/3 py-2.5 rounded-xl bg-[#2a0c16] hover:bg-[#3a101f] text-rose-300 text-xs font-semibold border border-rose-900/40">
+        <button onclick="closePaymentModal()" class="w-1/3 py-2.5 rounded-xl bg-[#2a0c16] hover:bg-[#3a101f] text-rose-300 text-xs font-bold border border-rose-900/40">
           Bekor qilish (Esc)
         </button>
-        <button onclick="completeCheckout()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-white font-black text-sm shadow-lg shadow-rose-950/60 flex items-center justify-center gap-2 border border-rose-500/30">
+        <button onclick="completeCheckout()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-white font-black text-sm shadow-xl shadow-rose-950/60 flex items-center justify-center gap-2 border border-rose-500/40">
           <i data-lucide="printer" class="w-4 h-4"></i> Chek chiqarish (Enter)
         </button>
       </div>
@@ -209,17 +249,17 @@
 
   <!-- RECEIPT SUCCESS MODAL -->
   <div id="receipt-modal" class="fixed inset-0 bg-[#0c0204]/85 backdrop-blur-md hidden items-center justify-center z-50 p-4">
-    <div class="bg-white text-slate-900 w-full max-w-sm rounded-2xl p-6 shadow-2xl font-mono text-xs">
+    <div class="bg-white text-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl font-mono text-xs">
       <div class="flex justify-between items-center pb-2 border-b border-dashed border-slate-300">
         <span class="font-bold text-rose-900">ORZU POS CHEKI</span>
-        <button onclick="closeReceiptModal()" class="text-slate-500 hover:text-black">✕</button>
+        <button onclick="closeReceiptModal()" class="text-slate-500 hover:text-black font-bold">✕</button>
       </div>
-      <pre id="receipt-content" class="py-3 whitespace-pre-wrap leading-relaxed text-slate-800"></pre>
+      <pre id="receipt-content" class="py-3 whitespace-pre-wrap leading-relaxed text-slate-800 text-xs font-mono"></pre>
       <div class="pt-3 border-t border-dashed border-slate-300 flex gap-2">
-        <button onclick="window.print()" class="flex-1 py-2 bg-rose-900 hover:bg-rose-800 text-white rounded-lg font-bold text-center">
+        <button onclick="window.print()" class="flex-1 py-2.5 bg-rose-900 hover:bg-rose-800 text-white rounded-xl font-bold text-center">
           Chop etish (Print)
         </button>
-        <button onclick="closeReceiptModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg font-semibold">
+        <button onclick="closeReceiptModal()" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl font-bold">
           Yopish
         </button>
       </div>
@@ -238,6 +278,15 @@
       document.getElementById('clock-display').innerText = now.toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
     }, 1000);
 
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {});
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
     // Initial load
     async function init() {
       await loadCategories();
@@ -253,7 +302,7 @@
         const container = document.getElementById('categories-container');
         cats.forEach(c => {
           const btn = document.createElement('button');
-          btn.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-[#240a12] hover:bg-[#320f1b] text-rose-300/80 border border-rose-950/60 transition';
+          btn.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-[#220a14] hover:bg-[#300d1c] text-rose-200/80 border border-rose-950/60 transition';
           btn.innerText = c.name;
           btn.onclick = () => filterCategory(c.id, btn);
           container.appendChild(btn);
@@ -290,24 +339,25 @@
       } catch (err) {}
     }
 
+    // Product Cards: Large, clear, touch-friendly, high contrast
     function renderProducts(products) {
       const grid = document.getElementById('products-grid');
       grid.innerHTML = '';
       products.forEach(p => {
         const card = document.createElement('div');
-        card.className = 'glass p-3 rounded-2xl flex flex-col justify-between hover:border-rose-500/60 cursor-pointer active:scale-95 transition shadow-sm hover:shadow-rose-950/40 bg-[#240a12]/80';
+        card.className = 'glass-card p-4 rounded-2xl flex flex-col justify-between hover:border-rose-500 hover:bg-[#2c0c19] cursor-pointer active:scale-95 transition shadow-md group';
         card.onclick = () => addToCart(p);
         card.innerHTML = `
           <div>
-            <div class="flex justify-between items-start mb-1">
-              <span class="text-[10px] font-mono text-rose-400 bg-rose-950/80 px-1.5 py-0.5 rounded border border-rose-900/40">${p.barcode}</span>
-              <span class="text-[10px] text-rose-300/60 font-medium">${p.stock_quantity} ${p.unit}</span>
+            <div class="flex justify-between items-start">
+              <span class="text-[10px] font-mono font-bold text-rose-300 bg-rose-950/90 px-2 py-0.5 rounded-lg border border-rose-900/50">${p.barcode}</span>
+              <span class="text-[11px] text-emerald-400 font-bold">${p.stock_quantity} ${p.unit}</span>
             </div>
-            <h4 class="font-bold text-xs text-rose-100 line-clamp-2 leading-tight mt-1">${p.name}</h4>
+            <h4 class="font-extrabold text-sm text-white line-clamp-2 leading-snug my-2.5 group-hover:text-rose-100">${p.name}</h4>
           </div>
-          <div class="mt-3 flex justify-between items-center pt-2 border-t border-rose-900/40">
-            <span class="font-black text-sm text-rose-200">${p.sell_price.toLocaleString()} <span class="text-[10px] font-normal text-rose-400/70">so'm</span></span>
-            <div class="w-6 h-6 rounded-lg bg-rose-900/50 text-rose-300 flex items-center justify-center font-bold text-xs border border-rose-800/40">+</div>
+          <div class="mt-2 flex justify-between items-center pt-2.5 border-t border-rose-900/40">
+            <span class="font-black text-base text-amber-300 font-mono">${p.sell_price.toLocaleString()} <span class="text-xs font-normal text-rose-300/70">so'm</span></span>
+            <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-rose-900 to-rose-700 group-hover:from-rose-800 group-hover:to-rose-600 text-white flex items-center justify-center font-black text-sm border border-rose-500/40 shadow-sm">+</div>
           </div>
         `;
         grid.appendChild(card);
@@ -317,13 +367,13 @@
 
     function filterCategory(catId, btn) {
       document.querySelectorAll('.cat-tab').forEach(b => {
-        b.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-[#240a12] hover:bg-[#320f1b] text-rose-300/80 border border-rose-950/60 transition';
+        b.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-[#220a14] hover:bg-[#300d1c] text-rose-200/80 border border-rose-950/60 transition';
       });
-      btn.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-gradient-to-r from-rose-800 to-rose-700 text-white shadow-lg shadow-rose-950/50 border border-rose-500/40';
+      btn.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap bg-gradient-to-r from-rose-800 to-rose-700 text-white shadow-lg border border-rose-500/40';
       loadProducts(catId);
     }
 
-    // Barcode scanner listener
+    // Barcode Scanner Listener
     document.getElementById('barcode-input').addEventListener('keydown', async (e) => {
       if (e.key === 'Enter') {
         const val = e.target.value.trim();
@@ -372,16 +422,17 @@
 
     function clearCart() {
       if (cart.length === 0) return;
-      if (confirm("Savatni tozalashni tasdiqlaysizmi?")) {
+      if (confirm("Xarid chekini tozalashni tasdiqlaysizmi?")) {
         cart = [];
         renderCart();
       }
     }
 
+    // Render Cart Table
     function renderCart() {
       const container = document.getElementById('cart-items');
-      const countBadge = document.getElementById('cart-count');
-      const subtotalDisp = document.getElementById('subtotal-display');
+      const itemCountBadge = document.getElementById('cart-item-count');
+      const bottomQty = document.getElementById('bottom-qty-display');
       const totalDisp = document.getElementById('total-display');
 
       let subtotal = 0;
@@ -389,14 +440,17 @@
 
       if (cart.length === 0) {
         container.innerHTML = `
-          <div class="h-full flex flex-col items-center justify-center text-rose-400/50 space-y-2">
-            <i data-lucide="scan-barcode" class="w-12 h-12 text-rose-900/60"></i>
-            <p class="text-xs text-center px-4">Savat bo'sh. Shtrix-kodni skanerlang yoki tovar tanlang.</p>
+          <div class="h-full flex flex-col items-center justify-center text-rose-300/40 space-y-3">
+            <i data-lucide="shopping-bag" class="w-16 h-16 text-rose-900/40"></i>
+            <p class="text-sm font-bold text-rose-200/80">Xarid cheki bo'sh</p>
+            <p class="text-xs text-rose-400/60 text-center max-w-xs">
+              Shtrix-kodni skanerlang yoki o'ng tomondagi tovar kartasini bosing.
+            </p>
           </div>
         `;
-        countBadge.innerText = '0';
-        subtotalDisp.innerText = '0 so\'m';
-        totalDisp.innerText = '0 so\'m';
+        itemCountBadge.innerText = '0 tovar';
+        bottomQty.innerText = '0 dona';
+        totalDisp.innerText = '0 SO\'M';
         currentTotal = 0;
         lucide.createIcons();
         return;
@@ -408,47 +462,52 @@
         subtotal += itemTotal;
         totalQty += item.quantity;
 
-        const el = document.createElement('div');
-        el.className = 'p-2.5 rounded-xl bg-[#220a11] border border-rose-900/40 flex items-center justify-between text-xs shadow-sm';
-        el.innerHTML = `
-          <div class="flex-1 mr-2">
-            <p class="font-bold text-rose-100 line-clamp-1">${item.product.name}</p>
-            <p class="text-[11px] text-rose-400/70">${item.product.sell_price.toLocaleString()} so'm</p>
+        const row = document.createElement('div');
+        row.className = 'px-3 py-2.5 rounded-xl bg-[#220a13] border border-rose-900/50 grid grid-cols-12 items-center text-xs shadow-sm hover:border-rose-500/50 transition';
+        row.innerHTML = `
+          <span class="col-span-1 text-center font-bold text-rose-400/80 text-xs">${idx + 1}</span>
+          <div class="col-span-5 pr-2">
+            <p class="font-black text-white text-xs line-clamp-1">${item.product.name}</p>
+            <p class="text-[10px] font-mono text-rose-400/80">${item.product.barcode}</p>
           </div>
-          <div class="flex items-center gap-1.5">
-            <button onclick="updateQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-[#2e0e18] hover:bg-[#401322] text-rose-200 flex items-center justify-center font-bold border border-rose-900/40">-</button>
-            <span class="w-7 text-center font-black text-white text-xs">${item.quantity}</span>
-            <button onclick="updateQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-[#2e0e18] hover:bg-[#401322] text-rose-200 flex items-center justify-center font-bold border border-rose-900/40">+</button>
+          <div class="col-span-2 text-right font-bold text-rose-200">
+            ${item.product.sell_price.toLocaleString()}
           </div>
-          <div class="w-20 text-right ml-2 font-black text-rose-200">
-            ${itemTotal.toLocaleString()}
+          <div class="col-span-2 flex items-center justify-center gap-1">
+            <button onclick="updateQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-[#2e0e1a] hover:bg-[#431426] text-white flex items-center justify-center font-black border border-rose-900/40">-</button>
+            <span class="w-6 text-center font-black text-white text-xs">${item.quantity}</span>
+            <button onclick="updateQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-[#2e0e1a] hover:bg-[#431426] text-white flex items-center justify-center font-black border border-rose-900/40">+</button>
           </div>
-          <button onclick="removeItem(${idx})" class="ml-2 text-rose-500/60 hover:text-rose-400">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
+          <div class="col-span-2 flex items-center justify-end gap-1.5 pr-1">
+            <span class="font-black text-amber-300 font-mono text-xs">${itemTotal.toLocaleString()}</span>
+            <button onclick="removeItem(${idx})" class="text-rose-500 hover:text-rose-300 p-0.5">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
         `;
-        container.appendChild(el);
+        container.appendChild(row);
       });
 
       currentTotal = subtotal;
-      countBadge.innerText = totalQty;
-      subtotalDisp.innerText = subtotal.toLocaleString() + ' so\'m';
-      totalDisp.innerText = subtotal.toLocaleString() + ' so\'m';
+      itemCountBadge.innerText = `${cart.length} xil (${totalQty} dona)`;
+      bottomQty.innerText = `${totalQty} dona`;
+      totalDisp.innerText = subtotal.toLocaleString() + ' SO\'M';
       lucide.createIcons();
     }
 
-    // Hotkeys F2-F5, Esc
+    // Keyboard Shortcuts (F2-F5, F11, Esc, Del)
     window.addEventListener('keydown', (e) => {
       if (e.key === 'F2') { e.preventDefault(); openPaymentModal('cash'); }
       if (e.key === 'F3') { e.preventDefault(); openPaymentModal('card'); }
       if (e.key === 'F4') { e.preventDefault(); openPaymentModal('qr'); }
       if (e.key === 'F5') { e.preventDefault(); openPaymentModal('debt'); }
+      if (e.key === 'Delete') { e.preventDefault(); clearCart(); }
       if (e.key === 'Escape') { closePaymentModal(); closeReceiptModal(); }
     });
 
     function openPaymentModal(method) {
       if (cart.length === 0) {
-        alert("Savat bo'sh! Xarid tovarlarini qo'shing.");
+        alert("Xarid cheki bo'sh! Avval tovar qo'shing.");
         return;
       }
       currentPaymentMethod = method;
@@ -504,10 +563,10 @@
       const disp = document.getElementById('change-display');
       if (change >= 0) {
         disp.innerText = change.toLocaleString() + ' so\'m';
-        disp.className = 'font-black text-base text-emerald-400';
+        disp.className = 'font-black text-lg text-emerald-400 font-mono';
       } else {
         disp.innerText = 'Yetarli emas (' + Math.abs(change).toLocaleString() + ')';
-        disp.className = 'font-bold text-sm text-rose-400';
+        disp.className = 'font-bold text-sm text-rose-400 font-mono';
       }
     }
 
@@ -545,7 +604,7 @@
           showReceipt(result);
           cart = [];
           renderCart();
-          await loadProducts(); // reload stock
+          await loadProducts();
         } else {
           const err = await res.json();
           alert("Savdoni saqlashda xato: " + (err.error || "Noma'lum"));

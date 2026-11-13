@@ -40,6 +40,15 @@ func main() {
 	setupInstallerAPI(app)
 
 	// Web UI
+	app.Get("/manifest.json", func(c *fiber.Ctx) error {
+		manifestBytes, err := web.WebFS.ReadFile("manifest.json")
+		if err != nil {
+			return c.SendStatus(404)
+		}
+		c.Set("Content-Type", "application/json")
+		return c.Send(manifestBytes)
+	})
+
 	iconsFS, _ := fs.Sub(web.WebFS, "icons")
 	app.Use("/icons", filesystem.New(filesystem.Config{
 		Root:   http.FS(iconsFS),
@@ -250,7 +259,7 @@ func createDesktopShortcut(mod string) error {
 
 	if strings.HasPrefix(target, "http") {
 		// Create .lnk for URL to allow custom icon
-		psScript := fmt.Sprintf(`$wsh = New-Object -ComObject WScript.Shell; $s = $wsh.CreateShortcut("%s"); $s.TargetPath = "msedge.exe"; $s.Arguments = "--app=%s"; $s.IconLocation = "%s"; $s.Save()`,
+		psScript := fmt.Sprintf(`$wsh = New-Object -ComObject WScript.Shell; $s = $wsh.CreateShortcut("%s"); $s.TargetPath = "msedge.exe"; $s.Arguments = "--app=%s --force-dark-mode --start-maximized"; $s.IconLocation = "%s"; $s.Save()`,
 			filepath.Join(desktopDir, name+".lnk"), target, iconPath)
 		cmd := exec.Command("powershell", "-NoProfile", "-Command", psScript)
 		return cmd.Run()
