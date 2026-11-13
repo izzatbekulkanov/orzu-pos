@@ -1,53 +1,65 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/http"
+	"os"
 	"os/exec"
-	"runtime"
+	"path/filepath"
+	"syscall"
 	"time"
+
+	"github.com/izzatbekulkanov/orzu-pos/internal/tray"
 )
 
 func main() {
-	fmt.Println("==================================================")
-	fmt.Println("   🛒 ORZU Kassa — Sotuv Ilovasi (Kiosk) v1.0    ")
-	fmt.Println("   Olmos Orzu market - Kassa moduli               ")
-	fmt.Println("==================================================")
-
 	targetURL := "http://localhost:8080"
 
-	// Server faolligini tekshirish
-	fmt.Println("⏳ ORZU Server aloqasi tekshirilmoqda...")
-	isUp := false
-	for i := 0; i < 5; i++ {
-		resp, err := http.Get(targetURL + "/api/settings")
-		if err == nil && resp.StatusCode == 200 {
-			isUp = true
-			resp.Body.Close()
-			break
+	// 1. Agar server yoqilmagan bo'lsa, uni fonda (terminal oynamasisiz) ishga tushirish
+	if !isServerUp(targetURL) {
+		startServerSilently()
+		// Server yuklanishini 3 soniyagacha kutish
+		for i := 0; i < 6; i++ {
+			time.Sleep(500 * time.Millisecond)
+			if isServerUp(targetURL) {
+				break
+			}
 		}
-		time.Sleep(1 * time.Second)
 	}
 
-	if !isUp {
-		log.Println("ℹ️ ORZU Server hali yoqilmagan ko'rinadi. Iltimos, avval 'orzu-server.exe' ni ishga tushiring.")
-	}
-
-	fmt.Printf("🚀 Kassa ekrani ochilmoqda: %s\n", targetURL)
-	openKiosk(targetURL)
+	// 2. Kassa oynasini terminalsiz, toza ilova sifatida ochish
+	tray.OpenApp(targetURL)
 }
 
-func openKiosk(url string) {
-	var cmd *exec.Cmd
-	switch runtime.GOOS {
-	case "windows":
-		// Microsoft Edge kiosk yoki Chrome kiosk rejimida ochish
-		cmd = exec.Command("cmd", "/c", "start", "msedge", "--app="+url)
-	case "darwin":
-		cmd = exec.Command("open", url)
-	default: // Linux
-		cmd = exec.Command("xdg-open", url)
+func isServerUp(url string) bool {
+	client := http.Client{Timeout: 600 * time.Millisecond}
+	resp, err := client.Get(url + "/api/settings")
+	if err == nil && resp.StatusCode == 200 {
+		resp.Body.Close()
+		return true
 	}
-	_ = cmd.Start()
+	return false
+}
+
+func startServerSilently() {
+	exeDir, _ := os.Executable()
+	baseDir := filepath.Dir(exeDir)
+
+	candidates := []string{
+		filepath.Join(baseDir, "orzu-server.exe"),
+		filepath.Join(`D:\ORZU_POS`, "orzu-server.exe"),
+		filepath.Join("bin", "orzu-server.exe"),
+	}
+
+	for _, path := range candidates {
+		if _, err := os.Stat(path); err == nil {
+			cmd := exec.Command(path)
+			cmd.Dir = filepath.Dir(path)
+			cmd.SysProcAttr = &syscall.SysProcAttr{
+				HideWindow:    true,
+				CreationFlags: 0x08000000, // CREATE_NO_WINDOW
+			}
+			_ = cmd.Start()
+			return
+		}
+	}
 }

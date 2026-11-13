@@ -11,10 +11,12 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
+	"github.com/izzatbekulkanov/orzu-pos/internal/tray"
 	"github.com/izzatbekulkanov/orzu-pos/web"
 )
 
@@ -131,6 +133,10 @@ func setupInstallerAPI(app *fiber.App) {
 
 		cmd := exec.Command(targetPath)
 		cmd.Dir = filepath.Dir(targetPath)
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			HideWindow:    true,
+			CreationFlags: 0x08000000,
+		}
 		if err := cmd.Start(); err != nil {
 			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 		}
@@ -229,11 +235,5 @@ func createDesktopShortcut(mod string) error {
 }
 
 func openAppWindow(url string) {
-	if runtime.GOOS == "windows" {
-		cmd := exec.Command("cmd", "/c", "start", "msedge", "--app="+url)
-		_ = cmd.Start()
-	} else {
-		cmd := exec.Command("xdg-open", url)
-		_ = cmd.Start()
-	}
+	tray.OpenApp(url)
 }

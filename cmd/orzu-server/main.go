@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/izzatbekulkanov/orzu-pos/internal/api"
 	"github.com/izzatbekulkanov/orzu-pos/internal/database"
+	"github.com/izzatbekulkanov/orzu-pos/internal/tray"
 	"github.com/izzatbekulkanov/orzu-pos/web"
 )
 
@@ -64,8 +65,15 @@ func main() {
 	printServerAddresses(port)
 
 	log.Printf("🚀 ORZU Server ishga tushdi: port :%s\n", port)
-	if err := app.Listen(":" + port); err != nil {
-		log.Fatalf("Serverni ishga tushirishda xato: %v\n", err)
+	go func() {
+		if err := app.Listen(":" + port); err != nil {
+			log.Fatalf("Serverni ishga tushirishda xato: %v\n", err)
+		}
+	}()
+
+	// Windows tizimida pastki o'ng burchakdagi (System Tray) belgini ishga tushirish
+	if err := tray.InitTray(port); err != nil {
+		select {}
 	}
 }
 
