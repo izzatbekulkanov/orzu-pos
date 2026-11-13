@@ -9,6 +9,7 @@
 
 | Modul | Dastur | Vazifasi |
 | :--- | :--- | :--- |
+| **Boshqaruvchi** | **ORZU Setup** (`ORZU_Setup.exe`) | **Yagona o'rnatuvchi markazi:** Qaysi modul o'rnatilgan/yo'qligini ko'rsatadi va 1-klikda o'rnatadi |
 | **1-qadam** | **ORZU DB** (`orzu-db.exe`) | PostgreSQL / SQLite avtomatik sozlovchi va jadvallar migratsiyasi |
 | **2-qadam** | **ORZU Server** (`orzu-server.exe`) | Go Core REST API, Real-time WebSocket, markaziy maʼlumotlar bazasi |
 | **3-qadam** | **ORZU Boshqaruv** (`/admin`) | Tovarlar ombori, kirim, narxlar, hisobotlar, tahlil va xodimlar |
