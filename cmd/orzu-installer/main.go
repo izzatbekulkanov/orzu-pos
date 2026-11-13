@@ -40,6 +40,12 @@ func main() {
 	setupInstallerAPI(app)
 
 	// Web UI
+	iconsFS, _ := fs.Sub(web.WebFS, "icons")
+	app.Use("/icons", filesystem.New(filesystem.Config{
+		Root:   http.FS(iconsFS),
+		Browse: false,
+	}))
+
 	installerFS, _ := fs.Sub(web.WebFS, "installer")
 	app.Use("/", filesystem.New(filesystem.Config{
 		Root:         http.FS(installerFS),
@@ -169,6 +175,13 @@ func isServerRunning() bool {
 
 func copyModule(mod string) error {
 	_ = os.MkdirAll(defaultInstallDir, 0755)
+	_ = os.MkdirAll(filepath.Join(defaultInstallDir, "assets", "icons"), 0755)
+
+	// Copy icons if present
+	if isFileExists(filepath.Join("assets", "icons", mod+".ico")) {
+		_ = copyFile(filepath.Join("assets", "icons", mod+".ico"), filepath.Join(defaultInstallDir, "assets", "icons", mod+".ico"))
+	}
+
 	exeName := fmt.Sprintf("orzu-%s.exe", mod)
 
 	srcPath := filepath.Join("bin", exeName)
@@ -178,13 +191,17 @@ func copyModule(mod string) error {
 		return fmt.Errorf("%s manba fayli topilmadi", srcPath)
 	}
 
-	srcFile, err := os.Open(srcPath)
+	return copyFile(srcPath, destPath)
+}
+
+func copyFile(src, dest string) error {
+	srcFile, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer srcFile.Close()
 
-	destFile, err := os.Create(destPath)
+	destFile, err := os.Create(dest)
 	if err != nil {
 		return err
 	}
@@ -205,30 +222,43 @@ func createDesktopShortcut(mod string) error {
 		return nil
 	}
 
-	var name, target string
+	var name, target, iconPath string
 	switch mod {
 	case "kassa":
 		name = "ORZU Kassa"
 		target = filepath.Join(defaultInstallDir, "orzu-kassa.exe")
+		iconPath = filepath.Join(defaultInstallDir, "assets", "icons", "kassa.ico")
 	case "admin":
 		name = "ORZU Boshqaruv"
 		target = "http://localhost:8080/admin"
+		iconPath = filepath.Join(defaultInstallDir, "assets", "icons", "admin.ico")
 	case "server":
 		name = "ORZU Server"
 		target = filepath.Join(defaultInstallDir, "orzu-server.exe")
+		iconPath = filepath.Join(defaultInstallDir, "assets", "icons", "server.ico")
+	case "db":
+		name = "ORZU DB"
+		target = filepath.Join(defaultInstallDir, "orzu-db.exe")
+		iconPath = filepath.Join(defaultInstallDir, "assets", "icons", "db.ico")
+	case "backup":
+		name = "ORZU Arxiv"
+		target = filepath.Join(defaultInstallDir, "orzu-backup.exe")
+		iconPath = filepath.Join(defaultInstallDir, "assets", "icons", "backup.ico")
 	default:
 		return nil
 	}
 
 	if strings.HasPrefix(target, "http") {
-		// Create .url internet shortcut
-		urlContent := fmt.Sprintf("[InternetShortcut]\nURL=%s\nIconIndex=0\n", target)
-		return os.WriteFile(filepath.Join(desktopDir, name+".url"), []byte(urlContent), 0644)
+		// Create .lnk for URL to allow custom icon
+		psScript := fmt.Sprintf(`$wsh = New-Object -ComObject WScript.Shell; $s = $wsh.CreateShortcut("%s"); $s.TargetPath = "msedge.exe"; $s.Arguments = "--app=%s"; $s.IconLocation = "%s"; $s.Save()`,
+			filepath.Join(desktopDir, name+".lnk"), target, iconPath)
+		cmd := exec.Command("powershell", "-NoProfile", "-Command", psScript)
+		return cmd.Run()
 	}
 
-	// Create Windows .lnk via PowerShell WScript.Shell
-	psScript := fmt.Sprintf(`$wsh = New-Object -ComObject WScript.Shell; $s = $wsh.CreateShortcut("%s"); $s.TargetPath = "%s"; $s.WorkingDirectory = "%s"; $s.Save()`,
-		filepath.Join(desktopDir, name+".lnk"), target, defaultInstallDir)
+	// Create Windows .lnk via PowerShell WScript.Shell with custom icon
+	psScript := fmt.Sprintf(`$wsh = New-Object -ComObject WScript.Shell; $s = $wsh.CreateShortcut("%s"); $s.TargetPath = "%s"; $s.WorkingDirectory = "%s"; if (Test-Path "%s") { $s.IconLocation = "%s" }; $s.Save()`,
+		filepath.Join(desktopDir, name+".lnk"), target, defaultInstallDir, iconPath, iconPath)
 
 	cmd := exec.Command("powershell", "-NoProfile", "-Command", psScript)
 	return cmd.Run()

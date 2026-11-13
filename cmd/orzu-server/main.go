@@ -39,18 +39,25 @@ func main() {
 	// 3. Embedded veb interfeyslarni ulash
 	kassaFS, _ := fs.Sub(web.WebFS, "kassa")
 	adminFS, _ := fs.Sub(web.WebFS, "admin")
+	iconsFS, _ := fs.Sub(web.WebFS, "icons")
 
-	// / -> Kassa ilovasi
-	app.Use("/", filesystem.New(filesystem.Config{
-		Root:         http.FS(kassaFS),
-		Index:        "index.html",
-		NotFoundFile: "index.html",
-		Browse:       false,
+	// /icons -> Ikonkalar
+	app.Use("/icons", filesystem.New(filesystem.Config{
+		Root:   http.FS(iconsFS),
+		Browse: false,
 	}))
 
 	// /admin -> Boshqaruv paneli
 	app.Use("/admin", filesystem.New(filesystem.Config{
 		Root:         http.FS(adminFS),
+		Index:        "index.html",
+		NotFoundFile: "index.html",
+		Browse:       false,
+	}))
+
+	// / -> Kassa ilovasi
+	app.Use("/", filesystem.New(filesystem.Config{
+		Root:         http.FS(kassaFS),
 		Index:        "index.html",
 		NotFoundFile: "index.html",
 		Browse:       false,

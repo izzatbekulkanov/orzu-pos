@@ -214,8 +214,11 @@ func InitTray(port string) error {
 	}
 	globalHWnd = hWnd
 
-	// Load standard Application Icon (32512 = IDI_APPLICATION)
-	hIcon, _, _ := procLoadIconW.Call(0, uintptr(32512))
+	// Load application icon embedded via rsrc (ID = 1), or fallback to standard IDI_APPLICATION
+	hIcon, _, _ := procLoadIconW.Call(hInstance, uintptr(1))
+	if hIcon == 0 {
+		hIcon, _, _ = procLoadIconW.Call(0, uintptr(32512))
+	}
 
 	globalNID.CbSize = uint32(unsafe.Sizeof(globalNID))
 	globalNID.HWnd = hWnd
