@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="uz" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ORZU POS - Olmos Orzu market (Kassa)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans select-none overflow-hidden">
+
+  <!-- TOP BAR -->
+  <header class="h-14 bg-slate-950 border-b border-slate-800 px-4 flex items-center justify-between z-20">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <i data-lucide="shopping-cart" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-base tracking-wide bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">ORZU POS</h1>
+        <p class="text-xs text-cyan-400 font-medium">Olmos Orzu market</p>
+      </div>
+      <span class="ml-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Kassa Faol
+      </span>
+    </div>
+
+    <!-- Quick Barcode input for scanner -->
+    <div class="flex-1 max-w-md mx-6">
+      <div class="relative">
+        <i data-lucide="barcode" class="w-5 h-5 absolute left-3 top-2.5 text-slate-400"></i>
+        <input type="text" id="barcode-input" autofocus placeholder="Shtrix-kodni skanerlang yoki qidiring... (Enter)"
+               class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition">
+      </div>
+    </div>
+
+    <!-- Actions & User -->
+    <div class="flex items-center space-x-3">
+      <a href="/admin" target="_blank" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 transition">
+        <i data-lucide="layout-dashboard" class="w-4 h-4 text-cyan-400"></i> Boshqaruv
+      </a>
+      <div class="flex items-center gap-2 pl-3 border-l border-slate-800">
+        <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold text-cyan-400 border border-slate-700">
+          K1
+        </div>
+        <div class="text-left text-xs leading-tight">
+          <p class="font-semibold text-slate-200" id="cashier-name">Kassir 1</p>
+          <p class="text-slate-500" id="clock-display">--:--</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN AREA: Grid of products (left) + Cart & Checkout (right) -->
+  <main class="flex-1 flex overflow-hidden">
+    
+    <!-- LEFT: Products & Categories -->
+    <section class="flex-1 flex flex-col bg-slate-900/60 p-4 overflow-hidden">
+      <!-- Category Tabs -->
+      <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="categories-container">
+        <button class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-cyan-600 text-white shadow-md shadow-cyan-600/20" onclick="filterCategory(null, this)">
+          Barcha tovarlar
+        </button>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="flex-1 overflow-y-auto mt-3 pr-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" id="products-grid">
+        <!-- Dynamically rendered -->
+      </div>
+    </section>
+
+    <!-- RIGHT: Cart Drawer -->
+    <aside class="w-96 lg:w-[420px] bg-slate-950 border-l border-slate-800 flex flex-col justify-between z-10 shadow-2xl">
+      <!-- Cart Header -->
+      <div class="p-4 border-b border-slate-800/80 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="w-5 h-5 text-cyan-400"></i>
+          <h2 class="font-bold text-sm tracking-wide text-white">Xarid Savati</h2>
+          <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-cyan-500/10 text-cyan-400" id="cart-count">0</span>
+        </div>
+        <button onclick="clearCart()" class="text-xs text-rose-400 hover:text-rose-300 transition flex items-center gap-1 font-medium">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Tozalash
+        </button>
+      </div>
+
+      <!-- Cart Items List -->
+      <div class="flex-1 overflow-y-auto p-3 space-y-2" id="cart-items">
+        <div class="h-full flex flex-col items-center justify-center text-slate-500 space-y-2">
+          <i data-lucide="scan-barcode" class="w-12 h-12 text-slate-600"></i>
+          <p class="text-xs">Savat bo'sh. Shtrix-kodni skanerlang yoki tovar tanlang.</p>
+        </div>
+      </div>
+
+      <!-- Cart Totals & Checkout -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 space-y-3">
+        <!-- Subtotal / Discount -->
+        <div class="space-y-1 text-xs">
+          <div class="flex justify-between text-slate-400">
+            <span>Tovarlar summasi:</span>
+            <span id="subtotal-display">0 so'm</span>
+          </div>
+          <div class="flex justify-between text-slate-400">
+            <span>Chegirma:</span>
+            <span id="discount-display" class="text-amber-400">0 so'm</span>
+          </div>
+          <div class="flex justify-between text-base font-extrabold text-white pt-2 border-t border-slate-800">
+            <span>TO'LANISHI:</span>
+            <span class="text-cyan-400 text-lg" id="total-display">0 so'm</span>
+          </div>
+        </div>
+
+        <!-- Payment Buttons -->
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button onclick="openPaymentModal('cash')" class="py-3 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95 transition">
+            <i data-lucide="banknote" class="w-4 h-4"></i> Naqd (F2)
+          </button>
+          <button onclick="openPaymentModal('card')" class="py-3 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 active:scale-95 transition">
+            <i data-lucide="credit-card" class="w-4 h-4"></i> Karta (F3)
+          </button>
+          <button onclick="openPaymentModal('qr')" class="py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-purple-600/20 active:scale-95 transition">
+            <i data-lucide="qr-code" class="w-4 h-4"></i> Click / Payme (F4)
+          </button>
+          <button onclick="openPaymentModal('debt')" class="py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-600/20 active:scale-95 transition">
+            <i data-lucide="book-open" class="w-4 h-4"></i> Nasiya (F5)
+          </button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- PAYMENT MODAL -->
+  <div id="payment-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="glass w-full max-w-md rounded-2xl p-6 shadow-2xl border border-slate-700 animate-in fade-in zoom-in-95 duration-150">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-700">
+        <h3 class="font-bold text-base text-white flex items-center gap-2" id="modal-title">
+          <i data-lucide="wallet" class="w-5 h-5 text-emerald-400"></i> To'lovni qabul qilish
+        </h3>
+        <button onclick="closePaymentModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="py-4 space-y-4">
+        <div class="text-center p-3 rounded-xl bg-slate-800/80 border border-slate-700">
+          <p class="text-xs text-slate-400">Jami to'lov summasi:</p>
+          <p class="text-2xl font-black text-cyan-400 mt-0.5" id="modal-amount">0 so'm</p>
+        </div>
+
+        <!-- Cash input fields -->
+        <div id="cash-section" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Mijoz bergan summa:</label>
+            <input type="number" id="cash-received" oninput="calculateChange()" placeholder="Masalan: 100000"
+                   class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-lg font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
+          </div>
+
+          <!-- Quick notes buttons -->
+          <div class="flex gap-1.5 overflow-x-auto pb-1 text-xs font-semibold">
+            <button onclick="setCashAmount(10000)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">10 000</button>
+            <button onclick="setCashAmount(20000)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">20 000</button>
+            <button onclick="setCashAmount(50000)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">50 000</button>
+            <button onclick="setCashAmount(100000)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">100 000</button>
+            <button onclick="setCashAmount(200000)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">200 000</button>
+          </div>
+
+          <div class="flex justify-between items-center p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-sm">
+            <span class="text-slate-400">Qaytim:</span>
+            <span class="font-bold text-base text-amber-400" id="change-display">0 so'm</span>
+          </div>
+        </div>
+
+        <!-- Customer Select (for Nasiya) -->
+        <div id="customer-section" class="hidden space-y-2">
+          <label class="block text-xs font-semibold text-slate-300">Nasiyador mijozni tanlang:</label>
+          <select id="customer-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-700 flex gap-2">
+        <button onclick="closePaymentModal()" class="w-1/3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">
+          Bekor qilish (Esc)
+        </button>
+        <button onclick="completeCheckout()" class="flex-1 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm shadow-lg shadow-cyan-600/30 flex items-center justify-center gap-2">
+          <i data-lucide="printer" class="w-4 h-4"></i> Chek chiqarish (Enter)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECEIPT SUCCESS MODAL -->
+  <div id="receipt-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white text-slate-900 w-full max-w-sm rounded-2xl p-6 shadow-2xl font-mono text-xs">
+      <div class="flex justify-between items-center pb-2 border-b border-dashed border-slate-300">
+        <span class="font-bold">CHEK TAYYOR</span>
+        <button onclick="closeReceiptModal()" class="text-slate-500 hover:text-black">✕</button>
+      </div>
+      <pre id="receipt-content" class="py-3 whitespace-pre-wrap leading-relaxed text-slate-800"></pre>
+      <div class="pt-3 border-t border-dashed border-slate-300 flex gap-2">
+        <button onclick="window.print()" class="flex-1 py-2 bg-slate-900 text-white rounded-lg font-bold text-center">
+          Chop etish (Print)
+        </button>
+        <button onclick="closeReceiptModal()" class="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg font-semibold">
+          Yopish
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allProducts = [];
+    let cart = [];
+    let currentPaymentMethod = 'cash';
+    let currentTotal = 0;
+
+    // Clock
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('clock-display').innerText = now.toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
+    }, 1000);
+
+    // Initial load
+    async function init() {
+      await loadCategories();
+      await loadProducts();
+      await loadCustomers();
+      lucide.createIcons();
+    }
+
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/categories');
+        const cats = await res.json();
+        const container = document.getElementById('categories-container');
+        cats.forEach(c => {
+          const btn = document.createElement('button');
+          btn.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-slate-300 transition';
+          btn.innerText = c.name;
+          btn.onclick = () => filterCategory(c.id, btn);
+          container.appendChild(btn);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadProducts(catId = null) {
+      try {
+        let url = '/api/products';
+        if (catId) url += '?category_id=' + catId;
+        const res = await fetch(url);
+        allProducts = await res.json();
+        renderProducts(allProducts);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadCustomers() {
+      try {
+        const res = await fetch('/api/customers');
+        const custs = await res.json();
+        const sel = document.getElementById('customer-select');
+        sel.innerHTML = '';
+        custs.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.innerText = `${c.full_name} (${c.phone || 'Tel yoq'}) - Qarz: ${c.debt_balance.toLocaleString()} so'm`;
+          sel.appendChild(opt);
+        });
+      } catch (err) {}
+    }
+
+    function renderProducts(products) {
+      const grid = document.getElementById('products-grid');
+      grid.innerHTML = '';
+      products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'glass p-3 rounded-2xl flex flex-col justify-between hover:border-cyan-500/50 cursor-pointer active:scale-95 transition shadow-sm';
+        card.onclick = () => addToCart(p);
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-start mb-1">
+              <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-1.5 py-0.5 rounded">${p.barcode}</span>
+              <span class="text-[10px] text-slate-400 font-medium">${p.stock_quantity} ${p.unit}</span>
+            </div>
+            <h4 class="font-semibold text-xs text-white line-clamp-2 leading-tight">${p.name}</h4>
+          </div>
+          <div class="mt-3 flex justify-between items-center pt-2 border-t border-slate-800">
+            <span class="font-extrabold text-sm text-cyan-400">${p.sell_price.toLocaleString()} <span class="text-[10px] font-normal text-slate-400">so'm</span></span>
+            <div class="w-6 h-6 rounded-lg bg-cyan-600/20 text-cyan-400 flex items-center justify-center font-bold text-xs">+</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function filterCategory(catId, btn) {
+      document.querySelectorAll('.cat-tab').forEach(b => {
+        b.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-800 hover:bg-slate-700 text-slate-300 transition';
+      });
+      btn.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-cyan-600 text-white shadow-md shadow-cyan-600/20';
+      loadProducts(catId);
+    }
+
+    // Barcode scanner listener
+    document.getElementById('barcode-input').addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        const val = e.target.value.trim();
+        if (!val) return;
+        try {
+          const res = await fetch('/api/products/barcode/' + encodeURIComponent(val));
+          if (res.ok) {
+            const product = await res.json();
+            addToCart(product);
+            e.target.value = '';
+          } else {
+            // Search by name
+            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(val.toLowerCase()) || p.barcode.includes(val));
+            renderProducts(filtered);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    });
+
+    // Cart Management
+    function addToCart(product) {
+      const existing = cart.find(item => item.product.id === product.id);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ product, quantity: 1, unit_price: product.sell_price });
+      }
+      renderCart();
+    }
+
+    function updateQuantity(productId, delta) {
+      const item = cart.find(i => i.product.id === productId);
+      if (!item) return;
+      item.quantity += delta;
+      if (item.quantity <= 0) {
+        cart = cart.filter(i => i.product.id !== productId);
+      }
+      renderCart();
+    }
+
+    function clearCart() {
+      cart = [];
+      renderCart();
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cart-items');
+      const countBadge = document.getElementById('cart-count');
+      const subtotalDisplay = document.getElementById('subtotal-display');
+      const totalDisplay = document.getElementById('total-display');
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-slate-500 space-y-2">
+            <i data-lucide="scan-barcode" class="w-12 h-12 text-slate-600"></i>
+            <p class="text-xs">Savat bo'sh. Shtrix-kodni skanerlang yoki tovar tanlang.</p>
+          </div>
+        `;
+        countBadge.innerText = '0';
+        subtotalDisplay.innerText = "0 so'm";
+        totalDisplay.innerText = "0 so'm";
+        currentTotal = 0;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = '';
+      let sum = 0;
+      let totalItems = 0;
+
+      cart.forEach(item => {
+        const itemTotal = item.quantity * item.unit_price;
+        sum += itemTotal;
+        totalItems += item.quantity;
+
+        const row = document.createElement('div');
+        row.className = 'p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex justify-between items-center gap-2';
+        row.innerHTML = `
+          <div class="flex-1 min-w-0">
+            <h5 class="text-xs font-semibold text-white truncate">${item.product.name}</h5>
+            <p class="text-[11px] text-slate-400 font-mono">${item.unit_price.toLocaleString()} so'm</p>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="updateQuantity(${item.product.id}, -1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-xs">-</button>
+            <span class="w-7 text-center font-bold text-xs text-white">${item.quantity}</span>
+            <button onclick="updateQuantity(${item.product.id}, 1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-xs">+</button>
+          </div>
+          <div class="text-right pl-2">
+            <p class="text-xs font-bold text-cyan-400">${itemTotal.toLocaleString()}</p>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+
+      currentTotal = sum;
+      countBadge.innerText = totalItems;
+      subtotalDisplay.innerText = sum.toLocaleString() + " so'm";
+      totalDisplay.innerText = sum.toLocaleString() + " so'm";
+    }
+
+    // Payment Modal
+    function openPaymentModal(method) {
+      if (cart.length === 0) {
+        alert("Savat bo'sh! Avval tovar tanlang.");
+        return;
+      }
+      currentPaymentMethod = method;
+      const modal = document.getElementById('payment-modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalAmount = document.getElementById('modal-amount');
+      const cashSection = document.getElementById('cash-section');
+      const custSection = document.getElementById('customer-section');
+
+      modalAmount.innerText = currentTotal.toLocaleString() + " so'm";
+
+      if (method === 'cash') {
+        modalTitle.innerHTML = '<i data-lucide="banknote" class="w-5 h-5 text-emerald-400"></i> Naqd pul to\'lovi';
+        cashSection.classList.remove('hidden');
+        custSection.classList.add('hidden');
+        document.getElementById('cash-received').value = currentTotal;
+        calculateChange();
+      } else if (method === 'debt') {
+        modalTitle.innerHTML = '<i data-lucide="book-open" class="w-5 h-5 text-amber-400"></i> Nasiya (Qarzga berish)';
+        cashSection.classList.add('hidden');
+        custSection.classList.remove('hidden');
+      } else {
+        modalTitle.innerHTML = '<i data-lucide="credit-card" class="w-5 h-5 text-blue-400"></i> Karta / QR to\'lovi';
+        cashSection.classList.add('hidden');
+        custSection.classList.add('hidden');
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closePaymentModal() {
+      const modal = document.getElementById('payment-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function setCashAmount(val) {
+      document.getElementById('cash-received').value = val;
+      calculateChange();
+    }
+
+    function calculateChange() {
+      const rec = parseFloat(document.getElementById('cash-received').value) || 0;
+      const change = rec - currentTotal;
+      const changeDisplay = document.getElementById('change-display');
+      if (change >= 0) {
+        changeDisplay.innerText = change.toLocaleString() + " so'm";
+        changeDisplay.className = 'font-bold text-base text-emerald-400';
+      } else {
+        changeDisplay.innerText = "Yetmayapti: " + Math.abs(change).toLocaleString() + " so'm";
+        changeDisplay.className = 'font-bold text-base text-rose-400';
+      }
+    }
+
+    async function completeCheckout() {
+      let cashPaid = 0;
+      let cardPaid = 0;
+      let qrPaid = 0;
+      let debtAmount = 0;
+      let customerId = null;
+
+      if (currentPaymentMethod === 'cash') {
+        cashPaid = parseFloat(document.getElementById('cash-received').value) || currentTotal;
+      } else if (currentPaymentMethod === 'card') {
+        cardPaid = currentTotal;
+      } else if (currentPaymentMethod === 'qr') {
+        qrPaid = currentTotal;
+      } else if (currentPaymentMethod === 'debt') {
+        debtAmount = currentTotal;
+        customerId = parseInt(document.getElementById('customer-select').value) || null;
+      }
+
+      const payload = {
+        cashier_id: 1,
+        customer_id: customerId,
+        payment_method: currentPaymentMethod,
+        cash_paid: cashPaid,
+        card_paid: cardPaid,
+        qr_paid: qrPaid,
+        debt_amount: debtAmount,
+        discount_amount: 0,
+        items: cart.map(i => ({
+          product_id: i.product.id,
+          quantity: i.quantity,
+          unit_price: i.unit_price
+        }))
+      };
+
+      try {
+        const res = await fetch('/api/sales/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          closePaymentModal();
+          clearCart();
+          showReceiptModal(data.receipt_text);
+        } else {
+          alert("Xatolik: " + data.error);
+        }
+      } catch (err) {
+        alert("Ulanish xatosi: " + err);
+      }
+    }
+
+    function showReceiptModal(receiptText) {
+      document.getElementById('receipt-content').innerText = receiptText;
+      const m = document.getElementById('receipt-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeReceiptModal() {
+      const m = document.getElementById('receipt-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+      document.getElementById('barcode-input').focus();
+    }
+
+    // Keyboard Hotkeys (F2, F3, F4, F5, Esc)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'F2') { e.preventDefault(); openPaymentModal('cash'); }
+      if (e.key === 'F3') { e.preventDefault(); openPaymentModal('card'); }
+      if (e.key === 'F4') { e.preventDefault(); openPaymentModal('qr'); }
+      if (e.key === 'F5') { e.preventDefault(); openPaymentModal('debt'); }
+      if (e.key === 'Escape') { closePaymentModal(); closeReceiptModal(); }
+    });
+
+    init();
+  </script>
+</body>
+</html>
