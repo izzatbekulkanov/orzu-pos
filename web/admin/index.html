@@ -205,15 +205,23 @@
     <!-- 2. PRODUCTS & INVENTORY (WITH LOCATION) -->
     <section id="tab-products" class="hidden space-y-4">
       <div class="flex flex-col gap-3">
-        <!-- Row 1: Search & Add Button -->
+        <!-- Row 1: Search & Clear & Add Button -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div class="relative flex-1 w-full">
-            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-rose-400"></i>
-            <input type="text" id="product-search-input" oninput="filterProductsList()" placeholder="Nom, shtrix-kod yoki joylashuv (polka) bo'yicha qidirish..."
-                   class="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:border-[#881337] placeholder-rose-400/40 focus:outline-none focus:border-rose-500 font-medium">
+          <div class="flex items-center gap-2 flex-1 w-full">
+            <div class="relative flex-1">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-[#881337]"></i>
+              <input type="text" id="product-search-input" oninput="filterProductsList()" placeholder="Nom, shtrix-kod yoki joylashuv (polka) bo'yicha qidirish..."
+                     class="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-9 py-2.5 text-xs text-slate-900 focus:border-[#881337] placeholder-slate-400 focus:outline-none font-medium">
+              <button id="btn-clear-product-search-x" onclick="clearProductSearch()" class="hidden absolute right-3 top-2.5 text-slate-400 hover:text-rose-600 transition p-0.5 rounded cursor-pointer" title="Tozalash">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <button onclick="clearProductSearch()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-bold text-xs border border-slate-300 flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 transition shadow-sm" title="Qidiruvni tozalash">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-slate-500"></i> Tozalash
+            </button>
           </div>
 
-          <button onclick="openProductModal()" class="px-5 py-2.5 rounded-xl bg-[#881337] hover:bg-[#9f1239] text-white font-bold text-xs shadow-lg shadow-rose-950/50 border border-rose-500/40 flex items-center gap-2 shrink-0 cursor-pointer active:scale-95 transition">
+          <button onclick="openProductModal()" class="px-5 py-2.5 rounded-xl bg-[#881337] hover:bg-[#9f1239] text-white font-bold text-xs shadow-md border border-[#881337] flex items-center gap-2 shrink-0 cursor-pointer active:scale-95 transition">
             <i data-lucide="plus-circle" class="w-4 h-4"></i> Yangi tovar qo'shish
           </button>
         </div>
@@ -2032,8 +2040,25 @@
       filterProductsList();
     }
 
+    function clearProductSearch() {
+      const inp = document.getElementById('product-search-input');
+      if (inp) {
+        inp.value = '';
+        const xBtn = document.getElementById('btn-clear-product-search-x');
+        if (xBtn) xBtn.classList.add('hidden');
+        filterProductsList();
+        try { inp.focus(); } catch(e) {}
+      }
+    }
+
     function filterProductsList() {
-      const q = document.getElementById('product-search-input').value.toLowerCase().trim();
+      const inp = document.getElementById('product-search-input');
+      const q = inp ? inp.value.toLowerCase().trim() : '';
+      const xBtn = document.getElementById('btn-clear-product-search-x');
+      if (xBtn) {
+        if (q.length > 0) xBtn.classList.remove('hidden');
+        else xBtn.classList.add('hidden');
+      }
       let list = allProducts;
       if (activeFilterCatId) {
         list = list.filter(p => p.category_id == activeFilterCatId);

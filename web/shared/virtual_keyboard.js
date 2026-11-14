@@ -170,6 +170,25 @@
     root.appendChild(body);
     document.body.appendChild(root);
 
+    if (!document.getElementById('vk-style-block')) {
+      const st = document.createElement('style');
+      st.id = 'vk-style-block';
+      st.textContent = `
+        .vk-key, .vk-action-key {
+          touch-action: manipulation;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .vk-pressed {
+          background-color: #881337 !important;
+          color: #ffffff !important;
+          border-color: #4c0519 !important;
+          box-shadow: 0 0 10px rgba(136, 19, 55, 0.7) !important;
+          transform: scale(0.92) !important;
+        }
+      `;
+      document.head.appendChild(st);
+    }
+
     // Floating Magnifier Bubble directly above pressed key
     let bubble = document.getElementById('vk-floating-bubble');
     if (!bubble) {
@@ -194,7 +213,6 @@
         justify-content: center;
         text-align: center;
         transform: translate(-50%, -100%);
-        transition: opacity 0.12s ease-out;
       `;
       document.body.appendChild(bubble);
     }
@@ -317,7 +335,6 @@
       k.style.display = 'flex';
       k.style.alignItems = 'center';
       k.style.justifyContent = 'center';
-      k.style.transition = 'transform 0.05s';
       k.style.userSelect = 'none';
       k.style.webkitUserSelect = 'none';
 
@@ -332,30 +349,24 @@
     });
   }
 
+  let activeFeedbackBtn = null;
+  let activeFeedbackTimeout = null;
+
   function showKeyFeedback(btn, charOrAction, isAction) {
     if (!btn) return;
 
-    // 1. Highlight button with vivid contrast (#881337)
-    const origBg = btn.style.backgroundColor || btn.style.background || '';
-    const origColor = btn.style.color || '';
-    const origBorder = btn.style.borderColor || '';
+    // Tezkor teginishda oldingi tugmani bir zumda tozalash
+    if (activeFeedbackBtn && activeFeedbackBtn !== btn) {
+      activeFeedbackBtn.classList.remove('vk-pressed');
+    }
+    if (activeFeedbackTimeout) {
+      clearTimeout(activeFeedbackTimeout);
+      activeFeedbackTimeout = null;
+    }
 
-    btn.style.setProperty('background-color', '#881337', 'important');
-    btn.style.setProperty('color', '#ffffff', 'important');
-    btn.style.setProperty('border-color', '#4c0519', 'important');
-    btn.style.setProperty('box-shadow', '0 0 12px rgba(136,19,55,0.7)', 'important');
-    btn.style.transform = 'scale(0.92)';
-
-    setTimeout(() => {
-      btn.style.removeProperty('background-color');
-      btn.style.removeProperty('color');
-      btn.style.removeProperty('border-color');
-      btn.style.removeProperty('box-shadow');
-      if (origBg) btn.style.background = origBg;
-      if (origColor) btn.style.color = origColor;
-      if (origBorder) btn.style.borderColor = origBorder;
-      btn.style.transform = 'scale(1)';
-    }, 160);
+    // 1. Tugmani chaqmoqdek tez yorqin bordo holatiga o'tkazish
+    activeFeedbackBtn = btn;
+    btn.classList.add('vk-pressed');
 
     // 2. Format label
     let label = charOrAction;
@@ -368,40 +379,38 @@
       label = 'Bo\'sh joy';
     }
 
-    // 3. Header badge
+    // 3. Sarlavhadagi "Bosildi" nishonini kechikishsiz yangilash
     const badge = document.getElementById('vk-last-pressed');
     const charSpan = document.getElementById('vk-last-char');
     if (badge && charSpan) {
       charSpan.innerText = label;
       badge.style.display = 'inline-flex';
-      badge.style.opacity = '1';
-      if (badgeTimeout) clearTimeout(badgeTimeout);
-      badgeTimeout = setTimeout(() => {
-        badge.style.opacity = '0.4';
-      }, 1500);
     }
 
-    // 4. Floating Magnifier Bubble directly above pressed key
+    // 4. Barmoq ustida darhol chiqib, bir zumda yo'qoluvchi ko'rsatkich pufak
     const bubble = document.getElementById('vk-floating-bubble');
     if (bubble) {
       const rect = btn.getBoundingClientRect();
-      bubble.innerText = (label.length > 5) ? label.slice(0, 5) : label;
+      bubble.innerText = (label.length > 4) ? label.slice(0, 4) : label;
       bubble.style.left = (rect.left + rect.width / 2) + 'px';
-      bubble.style.top = (rect.top - 8) + 'px';
+      bubble.style.top = (rect.top - 6) + 'px';
       bubble.style.display = 'flex';
-      bubble.style.opacity = '1';
 
       if (bubbleTimeout) clearTimeout(bubbleTimeout);
       bubbleTimeout = setTimeout(() => {
-        bubble.style.opacity = '0';
-        setTimeout(() => { bubble.style.display = 'none'; }, 120);
-      }, 200);
+        bubble.style.display = 'none';
+      }, 85);
     }
+
+    activeFeedbackTimeout = setTimeout(() => {
+      btn.classList.remove('vk-pressed');
+      if (activeFeedbackBtn === btn) activeFeedbackBtn = null;
+    }, 70);
   }
 
   function executeKey(charOrAction, isAction = false) {
     const now = Date.now();
-    if (now - lastActionTime < 45) return;
+    if (now - lastActionTime < 10) return;
     lastActionTime = now;
 
     if (isAction) {
@@ -437,17 +446,27 @@
         executeKey(val, isAction);
       };
 
-      btn.onpointerup = () => { setTimeout(() => { btn.style.transform = 'scale(1)'; }, 100); };
-      btn.onpointercancel = () => { btn.style.transform = 'scale(1)'; };
-      btn.onpointerleave = () => { btn.style.transform = 'scale(1)'; };
+      btn.onpointerup = () => {
+        btn.classList.remove('vk-pressed');
+      };
+      btn.onpointercancel = () => {
+        btn.classList.remove('vk-pressed');
+      };
+      btn.onpointerleave = () => {
+        btn.classList.remove('vk-pressed');
+      };
 
       // Fallback click for systems without pointer events
       btn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (Date.now() - lastActionTime > 300) {
+        if (Date.now() - lastActionTime > 150) {
           showKeyFeedback(btn, val, isAction);
           executeKey(val, isAction);
+        }
+      };
+    });
+  }
         }
       };
     });
