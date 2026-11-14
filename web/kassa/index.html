@@ -548,19 +548,16 @@
       }
 
       // HARDWARE SCANNER GLOBAL LISTENER:
-      // If focus is NOT actively in an editable input (like cust-search or cash-input),
-      // accumulate scanner key strokes globally and handle instantly on Enter!
       const activeEl = document.activeElement;
-      const isOtherInput = activeEl && (activeEl.id === 'cust-search' || activeEl.id === 'cash-input');
-      if (isOtherInput) return;
-
-      const now = Date.now();
+      const isInputFocused = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
 
       if (e.key === 'Enter') {
-        let code = globalBarcodeBuffer.trim();
         const bInput = document.getElementById('barcode-input');
-        if (!code && bInput && bInput.value.trim()) {
+        let code = '';
+        if (bInput && bInput.value.trim()) {
           code = bInput.value.trim();
+        } else if (globalBarcodeBuffer.trim()) {
+          code = globalBarcodeBuffer.trim();
         }
 
         if (code && code.length >= 2) {
@@ -574,16 +571,22 @@
         return;
       }
 
+      if (isInputFocused) {
+        // User is directly typing into an input field (physical or virtual keyboard)
+        return;
+      }
+
+      const now = Date.now();
       if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        // Reset buffer if manual typing gap > 350ms
-        if (now - lastScanKeyTime > 350 && globalBarcodeBuffer.length > 0) {
+        // Scanner keys arrive with <50ms gaps; if gap > 250ms reset buffer
+        if (now - lastScanKeyTime > 250 && globalBarcodeBuffer.length > 0) {
           globalBarcodeBuffer = '';
         }
         lastScanKeyTime = now;
         globalBarcodeBuffer += e.key;
 
         const bInput = document.getElementById('barcode-input');
-        if (bInput && activeEl !== bInput) {
+        if (bInput) {
           bInput.value = globalBarcodeBuffer;
         }
       }

@@ -6,6 +6,7 @@
   let currentMode = 'numpad'; // 'numpad' or 'qwerty'
   let isCyrillic = false;
   let isShift = false;
+  let lastActionTime = 0;
 
   const latinRows = [
     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='],
@@ -28,6 +29,7 @@
     if (el.readOnly || el.disabled) return true;
     if (el.dataset && el.dataset.noVk === 'true') return true;
     if (el.closest && el.closest('[data-no-vk="true"]')) return true;
+    // Modals with their own built-in large touch pads
     if (el.closest && (el.closest('#cashier-lock-modal') || el.closest('#modal-qty-edit'))) return true;
     return false;
   }
@@ -64,18 +66,59 @@
     return false;
   }
 
+  function findBestActiveInput() {
+    const active = document.activeElement;
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA') && !isExcludedInput(active)) {
+      return active;
+    }
+
+    // Check open visible modals
+    const openModals = Array.from(document.querySelectorAll('.fixed, [role="dialog"], .modal')).filter(m => {
+      return !m.classList.contains('hidden') && m.style.display !== 'none' && m.id !== 'orzu-virtual-keyboard-root';
+    });
+
+    for (const modal of openModals) {
+      const inp = modal.querySelector('input:not([type="hidden"]):not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly])');
+      if (inp && !isExcludedInput(inp)) return inp;
+    }
+
+    // Check barcode input in kassa
+    const bInput = document.getElementById('barcode-input');
+    if (bInput && !bInput.disabled && !bInput.readOnly) {
+      return bInput;
+    }
+
+    // Any available visible input
+    const anyInp = document.querySelector('input:not([type="hidden"]):not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly])');
+    if (anyInp && !isExcludedInput(anyInp)) {
+      return anyInp;
+    }
+
+    return null;
+  }
+
+  function updateTargetHint() {
+    const hint = document.getElementById('vk-target-hint');
+    if (!hint) return;
+    if (!activeInput) {
+      hint.innerText = '';
+      return;
+    }
+    const name = activeInput.placeholder || activeInput.getAttribute('aria-label') || activeInput.name || activeInput.id || 'Maydon';
+    hint.innerText = '👉 ' + name;
+  }
+
   function createKeyboard() {
     if (document.getElementById('orzu-virtual-keyboard-root')) return;
 
     const root = document.createElement('div');
     root.id = 'orzu-virtual-keyboard-root';
-    // Clean, crisp Light Mode ("Kun rejimi") styling with solid borders (NO GRADIENTS)
     root.style.cssText = `
       position: fixed;
       left: 0;
       right: 0;
       bottom: 0;
-      z-index: 99999;
+      z-index: 999999;
       background: #ffffff;
       border-top: 2px solid #cbd5e1;
       box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
@@ -93,7 +136,6 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 6px;
-      padding-bottom: 5px;
       border-bottom: 1px solid #e2e8f0;
       background: #f8fafc;
       padding: 4px 8px;
@@ -104,7 +146,7 @@
       <div style="display: flex; align-items: center; gap: 8px;">
         <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #059669;"></span>
         <span style="font-size: 11px; font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">SENSOR KLAVIATURA</span>
-        <span id="vk-target-hint" style="font-size: 11px; color: #475569; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;"></span>
+        <span id="vk-target-hint" style="font-size: 11px; color: #881337; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700;"></span>
       </div>
       <div style="display: flex; align-items: center; gap: 6px;">
         <button id="vk-mode-btn" type="button" style="padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">123 Raqamlar</button>
@@ -122,16 +164,19 @@
 
     // Header buttons
     document.getElementById('vk-close-btn').addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       hideKeyboard();
     });
     document.getElementById('vk-mode-btn').addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       currentMode = (currentMode === 'qwerty') ? 'numpad' : 'qwerty';
       renderKeys();
       if (activeInput) adjustScrollContainerForInput(activeInput);
     });
     document.getElementById('vk-lang-btn').addEventListener('click', (e) => {
+      e.preventDefault();
       e.stopPropagation();
       isCyrillic = !isCyrillic;
       renderKeys();
@@ -150,7 +195,7 @@
       if (modeBtn) modeBtn.innerText = 'ABC Harflar';
       if (langBtn) langBtn.style.display = 'none';
 
-      // Sleek, Ultra-Compact Light Numpad Layout (~160px height)
+      // Sleek, Ultra-Responsive Light Numpad Layout (~165px height)
       body.innerHTML = `
         <div style="display: flex; justify-content: center; gap: 10px; max-width: 520px; margin: 0 auto;">
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; flex: 3;">
@@ -235,8 +280,9 @@
       k.style.display = 'flex';
       k.style.alignItems = 'center';
       k.style.justifyContent = 'center';
-      k.style.transition = 'background 0.1s, transform 0.05s';
+      k.style.transition = 'transform 0.05s';
       k.style.userSelect = 'none';
+      k.style.webkitUserSelect = 'none';
 
       if (k.classList.contains('vk-key') && !k.style.background) {
         k.style.background = '#ffffff';
@@ -246,158 +292,234 @@
         k.style.minWidth = isNum ? '48px' : '38px';
         k.style.flex = '1';
       }
-
-      k.addEventListener('mousedown', (e) => {
-        e.preventDefault(); // Prevent blurring active input
-        k.style.transform = 'scale(0.95)';
-      });
-      k.addEventListener('mouseup', () => {
-        k.style.transform = 'scale(1)';
-      });
-      k.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        k.style.transform = 'scale(0.95)';
-      }, { passive: false });
-      k.addEventListener('touchend', () => {
-        k.style.transform = 'scale(1)';
-      });
     });
   }
 
-  function attachKeyListeners() {
-    const keys = document.querySelectorAll('.vk-key');
-    keys.forEach(k => {
-      k.onclick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const char = k.getAttribute('data-key');
-        if (char !== null) {
-          insertText(char);
-          if (isShift) {
-            isShift = false;
-            renderKeys();
-          }
-        }
-      };
-    });
+  function executeKey(charOrAction, isAction = false) {
+    const now = Date.now();
+    if (now - lastActionTime < 45) return;
+    lastActionTime = now;
 
-    const actions = document.querySelectorAll('.vk-action-key');
-    actions.forEach(a => {
-      a.onclick = (e) => {
+    if (isAction) {
+      if (charOrAction === 'backspace') deleteBackward();
+      else if (charOrAction === 'clear') clearInput();
+      else if (charOrAction === 'enter') pressEnter();
+      else if (charOrAction === 'shift') {
+        isShift = !isShift;
+        renderKeys();
+      }
+    } else {
+      insertText(charOrAction);
+      if (isShift) {
+        isShift = false;
+        renderKeys();
+      }
+    }
+  }
+
+  function attachKeyListeners() {
+    const allButtons = document.querySelectorAll('.vk-key, .vk-action-key');
+
+    allButtons.forEach(btn => {
+      const isAction = btn.classList.contains('vk-action-key');
+      const val = isAction ? btn.getAttribute('data-action') : btn.getAttribute('data-key');
+      if (val === null) return;
+
+      // Pointerdown gives instant zero-latency touch response and keeps active input focused
+      btn.onpointerdown = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const action = a.getAttribute('data-action');
-        if (action === 'backspace') {
-          deleteBackward();
-        } else if (action === 'clear') {
-          clearInput();
-        } else if (action === 'enter') {
-          pressEnter();
-        } else if (action === 'shift') {
-          isShift = !isShift;
-          renderKeys();
+        btn.style.transform = 'scale(0.92)';
+        executeKey(val, isAction);
+      };
+
+      btn.onpointerup = () => { btn.style.transform = 'scale(1)'; };
+      btn.onpointercancel = () => { btn.style.transform = 'scale(1)'; };
+      btn.onpointerleave = () => { btn.style.transform = 'scale(1)'; };
+
+      // Fallback click for systems without pointer events
+      btn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (Date.now() - lastActionTime > 300) {
+          executeKey(val, isAction);
         }
       };
     });
   }
 
   function insertText(str) {
-    if (!activeInput) return;
+    if (!activeInput) {
+      activeInput = findBestActiveInput();
+      if (!activeInput) return;
+    }
     const el = activeInput;
 
-    const start = el.selectionStart ?? el.value.length;
-    const end = el.selectionEnd ?? el.value.length;
-    const val = el.value || '';
+    try { el.focus(); } catch (e) {}
 
-    // Decimal guard: if already has dot and str is '.', don't add second dot
-    if (str === '.' && val.includes('.') && isNumericInput(el)) {
-      return;
+    // First attempt native execCommand which cleanly handles cursor, undo, and type="number"
+    let success = false;
+    try {
+      success = document.execCommand('insertText', false, str);
+    } catch (e) {
+      success = false;
     }
 
-    const newVal = val.slice(0, start) + str + val.slice(end);
-    el.value = newVal;
+    if (!success) {
+      const val = el.value || '';
+      let start = val.length;
+      let end = val.length;
+      let canSlice = true;
 
-    const newCursor = start + str.length;
-    try {
-      el.setSelectionRange(newCursor, newCursor);
-    } catch (e) {}
+      try {
+        start = el.selectionStart ?? val.length;
+        end = el.selectionEnd ?? val.length;
+      } catch (e) {
+        canSlice = false; // type="number" in Chromium
+      }
+
+      if (canSlice) {
+        if (str === '.' && val.includes('.') && isNumericInput(el)) return;
+        el.value = val.slice(0, start) + str + val.slice(end);
+        try {
+          const newPos = start + str.length;
+          el.setSelectionRange(newPos, newPos);
+        } catch (e) {}
+      } else {
+        // Fallback for type="number"
+        if (str === '.' && val.includes('.')) return;
+        const origType = el.type;
+        try {
+          if (str === '.') {
+            el.type = 'text';
+            el.value = val + '.';
+          } else {
+            el.value = val + str;
+          }
+        } catch (e) {
+          el.value = val + str;
+        } finally {
+          if (str !== '.' && el.type !== origType) {
+            try { el.type = origType; } catch (e) {}
+          }
+        }
+      }
+    }
 
     triggerEvents(el);
   }
 
   function deleteBackward() {
-    if (!activeInput) return;
-    const el = activeInput;
-    const start = el.selectionStart ?? el.value.length;
-    const end = el.selectionEnd ?? el.value.length;
-    const val = el.value || '';
-
-    if (start === end) {
-      if (start > 0) {
-        el.value = val.slice(0, start - 1) + val.slice(start);
-        try {
-          el.setSelectionRange(start - 1, start - 1);
-        } catch (e) {}
-      }
-    } else {
-      el.value = val.slice(0, start) + val.slice(end);
-      try {
-        el.setSelectionRange(start, start);
-      } catch (e) {}
+    if (!activeInput) {
+      activeInput = findBestActiveInput();
+      if (!activeInput) return;
     }
+    const el = activeInput;
+    try { el.focus(); } catch (e) {}
+
+    let success = false;
+    try {
+      success = document.execCommand('delete', false, null);
+    } catch (e) {
+      success = false;
+    }
+
+    if (!success) {
+      const val = el.value || '';
+      if (!val) return;
+
+      let start = val.length;
+      let end = val.length;
+      let canSlice = true;
+
+      try {
+        start = el.selectionStart ?? val.length;
+        end = el.selectionEnd ?? val.length;
+      } catch (e) {
+        canSlice = false;
+      }
+
+      if (canSlice) {
+        if (start === end) {
+          if (start > 0) {
+            el.value = val.slice(0, start - 1) + val.slice(start);
+            try { el.setSelectionRange(start - 1, start - 1); } catch (e) {}
+          }
+        } else {
+          el.value = val.slice(0, start) + val.slice(end);
+          try { el.setSelectionRange(start, start); } catch (e) {}
+        }
+      } else {
+        // Fallback: remove last character
+        el.value = val.slice(0, -1);
+      }
+    }
+
     triggerEvents(el);
   }
 
   function clearInput() {
-    if (!activeInput) return;
+    if (!activeInput) {
+      activeInput = findBestActiveInput();
+      if (!activeInput) return;
+    }
     activeInput.value = '';
     triggerEvents(activeInput);
   }
 
   function pressEnter() {
     if (!activeInput) {
-      hideKeyboard();
-      return;
+      activeInput = findBestActiveInput();
     }
     const el = activeInput;
-    triggerEvents(el);
+    if (el) {
+      triggerEvents(el);
 
-    // Dispatch keyboard event for Enter
-    const enterEvent = new KeyboardEvent('keydown', {
-      key: 'Enter',
-      code: 'Enter',
-      keyCode: 13,
-      which: 13,
-      bubbles: true,
-      cancelable: true
-    });
-    el.dispatchEvent(enterEvent);
+      // Dispatch keyboard event for Enter
+      const enterDown = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        code: 'Enter',
+        keyCode: 13,
+        which: 13,
+        bubbles: true,
+        cancelable: true
+      });
+      el.dispatchEvent(enterDown);
 
-    const keyUpEvent = new KeyboardEvent('keyup', {
-      key: 'Enter',
-      code: 'Enter',
-      keyCode: 13,
-      which: 13,
-      bubbles: true,
-      cancelable: true
-    });
-    el.dispatchEvent(keyUpEvent);
+      const enterUp = new KeyboardEvent('keyup', {
+        key: 'Enter',
+        code: 'Enter',
+        keyCode: 13,
+        which: 13,
+        bubbles: true,
+        cancelable: true
+      });
+      el.dispatchEvent(enterUp);
 
-    // Enter closes the virtual keyboard
+      if (el.form && typeof el.form.requestSubmit === 'function') {
+        try { el.form.requestSubmit(); } catch (e) {}
+      }
+    }
+
     hideKeyboard();
-    try { el.blur(); } catch (e) {}
+    if (el) {
+      try { el.blur(); } catch (e) {}
+    }
   }
 
   function triggerEvents(el) {
-    el.dispatchEvent(new Event('input', { bubbles: true }));
+    try {
+      el.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, data: el.value }));
+    } catch (e) {
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
     el.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  // Adjust scrollable modal containers so input (e.g. kirim miqdori) is NEVER covered by keyboard
+  // Adjust scrollable containers so input is never covered by keyboard
   function adjustScrollContainerForInput(input) {
     if (!input) return;
 
-    // Check modal or parent scroll containers
     const scrollParents = [
       input.closest('.overflow-y-auto'),
       input.closest('.overflow-auto'),
@@ -455,15 +577,13 @@
     if (isVisible) {
       hideKeyboard();
     } else {
-      if (!activeInput) {
-        const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]):not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly])'));
-        const usable = inputs.filter(inp => !isExcludedInput(inp) && inp.id !== 'barcode-input');
-        if (usable.length > 0) {
-          activeInput = usable[0];
-        }
+      if (!activeInput || isExcludedInput(activeInput)) {
+        activeInput = findBestActiveInput();
       }
       if (activeInput) {
         currentMode = isNumericInput(activeInput) ? 'numpad' : 'qwerty';
+        updateTargetHint();
+        adjustScrollContainerForInput(activeInput);
       }
       renderKeys();
       showKeyboard();
@@ -474,10 +594,7 @@
     if (isExcludedInput(el)) return;
 
     activeInput = el;
-    const hint = document.getElementById('vk-target-hint');
-    if (hint) {
-      hint.innerText = el.placeholder || el.name || el.id || '';
-    }
+    updateTargetHint();
 
     if (isNumericInput(el)) {
       currentMode = 'numpad';
@@ -493,19 +610,15 @@
   function init() {
     createKeyboard();
 
-    // STRICT USER INTERACTION ONLY:
-    // Only user click on an editable input shows the keyboard
-    document.addEventListener('click', (e) => {
+    // Listen to user click / tap on inputs (Real User Interaction)
+    function onUserInputOnElement(e) {
       const el = e.target;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
-        // Barcode input in kassa should NOT force virtual keyboard on hardware scan
-        if (el.id === 'barcode-input') {
-          // If user clicked manually, they can open keyboard from top bar if desired
-          return;
-        }
         handleInputActivation(el);
       }
-    }, true);
+    }
+    document.addEventListener('pointerup', onUserInputOnElement, true);
+    document.addEventListener('click', onUserInputOnElement, true);
 
     // Dismiss keyboard on outside touch/click:
     document.addEventListener('pointerdown', (e) => {
@@ -514,7 +627,7 @@
       if (root && root.contains(e.target)) return;
       if (activeInput && (e.target === activeInput || activeInput.contains(e.target))) return;
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-      if (e.target && e.target.closest && e.target.closest('button[onclick*="VirtualKeyboard"]')) return;
+      if (e.target && e.target.closest && (e.target.closest('button[onclick*="VirtualKeyboard"]') || e.target.closest('#vk-toggle-btn'))) return;
 
       // Clicked outside -> hide immediately!
       hideKeyboard();
