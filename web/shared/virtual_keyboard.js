@@ -500,10 +500,6 @@
       };
     });
   }
-        }
-      };
-    });
-  }
 
   function insertText(str) {
     if (!activeInput) {

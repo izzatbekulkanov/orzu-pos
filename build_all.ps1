@@ -40,6 +40,7 @@ New-Item -ItemType Directory -Force -Path "D:\ORZU_POS\assets\icons" | Out-Null
 New-Item -ItemType Directory -Force -Path "D:\ORZU_POS\uploads\products" | Out-Null
 Copy-Item -Path "bin\*" -Destination "D:\ORZU_POS\" -Force
 Copy-Item -Path "assets\icons\*" -Destination "D:\ORZU_POS\assets\icons\" -Force
+Copy-Item -Path "web" -Destination "D:\ORZU_POS\" -Recurse -Force
 Copy-Item -Path "version.json" -Destination "D:\ORZU_POS\" -Force -ErrorAction SilentlyContinue
 
 # Clean up old Desktop shortcuts and create fresh ones

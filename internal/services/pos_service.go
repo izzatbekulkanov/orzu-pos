@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -133,12 +134,38 @@ func ProcessSale(input CheckoutInput) (*models.Sale, string, error) {
 			}
 		}
 
-		// Chek raqamini generatsiya qilish (masalan ORZU-20261113-0001)
+		// Chek raqamini generatsiya qilish (masalan ORZU-20261114-0001)
 		now := time.Now()
 		datePrefix := now.Format("20060102")
-		var countToday int64
-		tx.Model(&models.Sale{}).Where("DATE(created_at) = DATE(?)", now).Count(&countToday)
-		receiptNumber := fmt.Sprintf("ORZU-%s-%04d", datePrefix, countToday+1)
+
+		// 1. Bugungi kungi oxirgi chek raqamini topish
+		var lastSale models.Sale
+		var seq int64 = 1
+		pattern := fmt.Sprintf("ORZU-%s-%%", datePrefix)
+		if err := tx.Unscoped().Where("receipt_number LIKE ?", pattern).Order("id DESC").First(&lastSale).Error; err == nil {
+			parts := strings.Split(lastSale.ReceiptNumber, "-")
+			if len(parts) >= 3 {
+				if parsedSeq, parseErr := strconv.ParseInt(parts[len(parts)-1], 10, 64); parseErr == nil && parsedSeq >= 1 {
+					seq = parsedSeq + 1
+				}
+			}
+		} else {
+			var count int64
+			tx.Model(&models.Sale{}).Where("receipt_number LIKE ?", pattern).Count(&count)
+			seq = count + 1
+		}
+
+		// Chek raqami takrorlanmasligini 100% kafolatlash (Collision-proof loop)
+		receiptNumber := fmt.Sprintf("ORZU-%s-%04d", datePrefix, seq)
+		for {
+			var exists int64
+			tx.Model(&models.Sale{}).Where("receipt_number = ?", receiptNumber).Count(&exists)
+			if exists == 0 {
+				break
+			}
+			seq++
+			receiptNumber = fmt.Sprintf("ORZU-%s-%04d", datePrefix, seq)
+		}
 
 		sale := models.Sale{
 			ReceiptNumber:  receiptNumber,
@@ -160,7 +187,15 @@ func ProcessSale(input CheckoutInput) (*models.Sale, string, error) {
 		}
 
 		if err := tx.Create(&sale).Error; err != nil {
-			return fmt.Errorf("savdo yozuvini yaratishda xato: %w", err)
+			// Favqulodda takroriy raqam holati bo'lsa, timestamp qo'shib qayta urinish
+			if strings.Contains(err.Error(), "UNIQUE") || strings.Contains(err.Error(), "receipt_number") {
+				sale.ReceiptNumber = fmt.Sprintf("ORZU-%s-%04d-%d", datePrefix, seq+1, time.Now().Unix()%10000)
+				if retryErr := tx.Create(&sale).Error; retryErr != nil {
+					return fmt.Errorf("savdo yozuvini yaratishda xato: %w", retryErr)
+				}
+			} else {
+				return fmt.Errorf("savdo yozuvini yaratishda xato: %w", err)
+			}
 		}
 
 		// Nasiya (Qarz) bo'lsa mijoz balansini oshirish
