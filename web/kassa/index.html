@@ -103,8 +103,8 @@
           K1
         </div>
         <div class="text-left text-xs leading-tight">
-          <p class="font-bold text-white truncate max-w-[120px]" id="cashier-name">Kassir</p>
-          <p class="text-rose-200 font-mono text-[11px]" id="clock-display">--:--</p>
+          <p class="font-extrabold text-white truncate max-w-[120px]" id="cashier-name">Kassir</p>
+          <p class="text-white/90 font-mono text-[11px] font-bold" id="clock-display">--:--</p>
         </div>
         <button onclick="lockTerminal()" title="Smenani qulflash (PIN orqali qayta ochish)" class="p-2 rounded-xl bg-white/15 hover:bg-white/30 text-white border border-white/30 transition cursor-pointer">
           <i data-lucide="lock" class="w-4 h-4"></i>
@@ -150,7 +150,7 @@
       </div>
 
       <!-- Table Header -->
-      <div class="px-4 py-2.5 bg-slate-100 border-b border-slate-200 grid grid-cols-12 text-[11px] font-bold text-slate-600 uppercase tracking-wider shrink-0">
+      <div class="px-4 py-2.5 bg-slate-100 border-b border-slate-300 grid grid-cols-12 text-[11px] font-black text-slate-800 uppercase tracking-wider shrink-0">
         <span class="col-span-1 text-center">No</span>
         <span class="col-span-5">Tovar nomi</span>
         <span class="col-span-2 text-right">Narxi</span>
@@ -162,8 +162,8 @@
       <div class="flex-1 overflow-y-auto px-3.5 py-2 space-y-1.5" id="cart-items">
         <div class="h-full flex flex-col items-center justify-center text-slate-400 space-y-3">
           <i data-lucide="shopping-bag" class="w-16 h-16 text-slate-300"></i>
-          <p class="text-sm font-bold text-slate-700">Xarid cheki bo'sh</p>
-          <p class="text-xs text-slate-500 text-center max-w-xs">
+          <p class="text-sm font-extrabold text-slate-700">Xarid cheki bo'sh</p>
+          <p class="text-xs text-slate-500 font-medium text-center max-w-xs">
             Shtrix-kodni skanerlang yoki chap tomondagi tovar kartasini bosing.
           </p>
         </div>
@@ -177,18 +177,18 @@
     <!-- Left: Cart Quick Summary -->
     <div class="flex items-center space-x-6 text-xs">
       <div class="space-y-0.5">
-        <p class="text-slate-500 font-bold">Tanlangan tovarlar:</p>
-        <p class="text-base font-black text-slate-900" id="bottom-qty-display">0</p>
+        <p class="text-slate-700 font-bold uppercase tracking-wider text-[11px]">Tanlangan tovarlar:</p>
+        <p class="text-base font-black text-slate-900 font-mono" id="bottom-qty-display">0</p>
       </div>
       <div class="w-px h-10 bg-slate-200"></div>
       <div class="space-y-0.5">
-        <p class="text-slate-500 font-bold">Chegirma:</p>
-        <p class="text-base font-black text-amber-600" id="discount-display">0 so'm</p>
+        <p class="text-slate-700 font-bold uppercase tracking-wider text-[11px]">Chegirma:</p>
+        <p class="text-base font-black text-amber-700 font-mono" id="discount-display">0 so'm</p>
       </div>
       <div class="w-px h-10 bg-slate-200"></div>
-      <div class="hidden xl:block text-slate-500 text-[11px] font-mono leading-tight">
-        <p class="font-bold text-slate-700">Tezkor tugmalar:</p>
-        <p class="text-slate-600">F2: Naqd | F3: Karta | F4: QR | F5: Nasiya</p>
+      <div class="hidden xl:block text-slate-700 text-[11px] font-mono leading-tight">
+        <p class="font-bold text-slate-800">Tezkor tugmalar:</p>
+        <p class="text-slate-600 font-semibold">F2: Naqd | F3: Karta | F4: QR | F5: Nasiya</p>
       </div>
     </div>
 
