@@ -1,42 +1,76 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"syscall"
+	"time"
 
-	"github.com/izzatbekulkanov/orzu-pos/internal/database"
+	"github.com/izzatbekulkanov/orzu-pos/internal/installer"
+	"github.com/izzatbekulkanov/orzu-pos/internal/tray"
 )
 
 func main() {
-	fmt.Println("==================================================")
-	fmt.Println("   🐘 ORZU DB — Baza Diagnostika va Init v1.0    ")
-	fmt.Println("   Namangan davlat pedagogika instituti RTTM      ")
-	fmt.Println("==================================================")
-
-	dbType := os.Getenv("ORZU_DB_TYPE")
-	if dbType == "" {
-		dbType = "sqlite"
+	// 1. Agar DB oynasi allaqachon ochilgan bo'lsa, uni oldinga chiqarish
+	if tray.ActivateExistingWindow("ORZU DB") || tray.ActivateExistingWindow("Ma'lumotlar Bazasi") {
+		return
 	}
 
-	fmt.Printf("Tekshirilayotgan rejim: %s\n", dbType)
-
-	db, err := database.InitDB()
-	if err != nil {
-		log.Fatalf("❌ Ulanish muvaffaqiyatsiz bo'ldi: %v\n", err)
+	// 2. O'rnatuvchi o'rnatilganligini tekshirish
+	if !installer.EnsureInstalled("ORZU DB") {
+		return
 	}
 
-	sqlDB, err := db.DB()
-	if err != nil {
-		log.Fatalf("SQL DB instansiyasini olib bo'lmadi: %v\n", err)
-	}
-	defer sqlDB.Close()
+	baseURL := "http://localhost:8080"
+	targetURL := "http://localhost:8080/db"
 
-	if err := sqlDB.Ping(); err != nil {
-		log.Fatalf("❌ Ping xatosi: %v\n", err)
+	// 3. Agar server yoqilmagan bo'lsa, uni ishga tushirish
+	if !isServerUp(baseURL) {
+		startServerSilently()
+		for i := 0; i < 6; i++ {
+			time.Sleep(500 * time.Millisecond)
+			if isServerUp(baseURL) {
+				break
+			}
+		}
 	}
 
-	fmt.Println("✅ Baza aloqasi a'lo darajada!")
-	fmt.Println("✅ Barcha jadvallar (Users, Products, Sales, Customers, Settings) to'liq tayyor.")
-	fmt.Println("✅ Dastlabki sozlamalar va tovarlar muvaffaqiyatli yuklangan.")
+	// 4. DB boshqaruv darchasini alohida toza ilova sifatida ochish
+	tray.OpenApp(targetURL)
+}
+
+func isServerUp(url string) bool {
+	client := http.Client{Timeout: 600 * time.Millisecond}
+	resp, err := client.Get(url + "/api/settings")
+	if err == nil && resp.StatusCode == 200 {
+		resp.Body.Close()
+		return true
+	}
+	return false
+}
+
+func startServerSilently() {
+	exeDir, _ := os.Executable()
+	baseDir := filepath.Dir(exeDir)
+
+	candidates := []string{
+		filepath.Join(baseDir, "orzu-server.exe"),
+		filepath.Join(`D:\ORZU_POS`, "orzu-server.exe"),
+		filepath.Join("bin", "orzu-server.exe"),
+	}
+
+	for _, path := range candidates {
+		if _, err := os.Stat(path); err == nil {
+			cmd := exec.Command(path)
+			cmd.Dir = filepath.Dir(path)
+			cmd.SysProcAttr = &syscall.SysProcAttr{
+				HideWindow:    true,
+				CreationFlags: 0x08000000,
+			}
+			_ = cmd.Start()
+			return
+		}
+	}
 }

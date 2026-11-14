@@ -30,6 +30,7 @@ type User struct {
 	FullName     string         `gorm:"size:128;not null" json:"full_name"`
 	Role         string         `gorm:"size:32;default:'cashier'" json:"role"`
 	PIN          string         `gorm:"size:8" json:"pin,omitempty"`
+	Phone        string         `gorm:"size:32" json:"phone,omitempty"`
 	IsActive     bool           `gorm:"default:true" json:"is_active"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
@@ -52,6 +53,7 @@ type Category struct {
 type Product struct {
 	ID            uint           `gorm:"primaryKey" json:"id"`
 	Barcode       string         `gorm:"size:64;index;not null" json:"barcode"`
+	ShortCode     string         `gorm:"size:16;index" json:"short_code"` // 4 xonali tezkor kod (masalan: 1001)
 	Name          string         `gorm:"size:255;not null" json:"name"`
 	CategoryID    uint           `gorm:"index" json:"category_id"`
 	Category      *Category      `json:"category,omitempty"`
@@ -59,6 +61,8 @@ type Product struct {
 	SellPrice     float64        `gorm:"type:decimal(14,2);not null" json:"sell_price"`       // Sotish narxi
 	StockQuantity float64        `gorm:"type:decimal(14,3);default:0" json:"stock_quantity"`  // Qoldiq (kg/dona)
 	Unit          string         `gorm:"size:16;default:'dona'" json:"unit"`                  // dona, kg, litr, metr
+	Location      string         `gorm:"size:128" json:"location"`                            // Tovar joylashuvi: polka / qator / muzlatgich
+	ImageURL      string         `gorm:"type:text" json:"image_url"`                          // Tovar rasmi (Base64 yoki URL)
 	MinStockAlert float64        `gorm:"default:5" json:"min_stock_alert"`
 	ExpiryDate    *time.Time     `json:"expiry_date,omitempty"`
 	IsActive      bool           `gorm:"default:true" json:"is_active"`

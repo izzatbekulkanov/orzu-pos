@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ORZU DB - Ma'lumotlar Bazasi</title>
+  <link rel="stylesheet" href="/shared/app.css">
+  <script src="/shared/tailwind.js"></script>
+  <script src="/shared/lucide.min.js"></script>
+  <script src="/shared/sound.js"></script>
+</head>
+<body class="h-full bg-[#120408] text-rose-100 flex flex-col font-sans select-none overflow-hidden">
+
+  <!-- TOP HEADER WITH CHROME-LIKE ACTIVE APP TABS -->
+  <header class="h-14 bg-[#1a0610] border-b border-slate-200/60 px-5 flex items-center justify-between shrink-0 shadow-lg">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-xl bg-[#881337] border border-rose-600/50 flex items-center justify-center shadow-md">
+        <i data-lucide="database" class="w-4 h-4 text-white"></i>
+      </div>
+      <div>
+        <h1 class="font-black text-sm text-white tracking-wide">ORZU DB</h1>
+        <p class="text-[10px] text-slate-500/80">SQLite Ma'lumotlar Bazasi Diagnostikasi</p>
+      </div>
+    </div>
+
+    <!-- Active App Tabs Container -->
+    <div id="orzu-app-tabs"></div>
+
+    <div class="flex items-center gap-2">
+      <span class="px-2.5 py-1 rounded-xl bg-emerald-950/80 text-emerald-300 border border-emerald-800/50 text-xs font-bold flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Oflayn Mustaqil
+      </span>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 overflow-y-auto p-6 space-y-6 bg-[#120408]">
+    <div class="max-w-5xl mx-auto space-y-6">
+
+      <!-- DB Status Banner -->
+      <div class="glass p-6 rounded-3xl border border-slate-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-[#881337] text-white">SQLite Engine</span>
+            <span class="text-xs text-slate-600 font-mono" id="db-path">D:\ORZU_POS\data\orzu_pos.db</span>
+          </div>
+          <h2 class="text-xl font-black text-white">Mahalliy Ma'lumotlar Bazasi Holati</h2>
+          <p class="text-xs text-slate-500">Tizim 100% oflayn rejimda lokal diskda tezkor tranzaksiyalar bilan ishlaydi.</p>
+        </div>
+
+        <div class="flex items-center gap-3 shrink-0">
+          <button onclick="runVacuum()" class="px-4 py-2.5 rounded-xl bg-[#881337] hover:bg-[#9f1239] text-white text-xs font-bold border border-rose-500/50 transition active:scale-95 cursor-pointer shadow-md flex items-center gap-2">
+            <i data-lucide="zap" class="w-4 h-4"></i> Optimallashtirish (VACUUM)
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="glass p-4 rounded-2xl border border-slate-200/40">
+          <span class="text-xs font-bold text-slate-600/70">Baza hajmi</span>
+          <h3 class="text-xl font-black text-white mt-1 font-mono" id="db-size">0 KB</h3>
+          <p class="text-[10px] text-slate-500/60 mt-0.5">Lokal fayl hajmi</p>
+        </div>
+
+        <div class="glass p-4 rounded-2xl border border-slate-200/40">
+          <span class="text-xs font-bold text-slate-600/70">Jami tovarlar</span>
+          <h3 class="text-xl font-black text-white mt-1 font-mono" id="count-products">0</h3>
+          <p class="text-[10px] text-slate-500/60 mt-0.5">Ombor va kassa tovarlari</p>
+        </div>
+
+        <div class="glass p-4 rounded-2xl border border-slate-200/40">
+          <span class="text-xs font-bold text-slate-600/70">Savdo cheklari</span>
+          <h3 class="text-xl font-black text-emerald-400 mt-1 font-mono" id="count-sales">0</h3>
+          <p class="text-[10px] text-slate-500/60 mt-0.5">Chiqarilgan cheklar</p>
+        </div>
+
+        <div class="glass p-4 rounded-2xl border border-slate-200/40">
+          <span class="text-xs font-bold text-slate-600/70">Mijozlar (Nasiya)</span>
+          <h3 class="text-xl font-black text-amber-300 mt-1 font-mono" id="count-customers">0</h3>
+          <p class="text-[10px] text-slate-500/60 mt-0.5">Ro'yxatdagi xaridorlar</p>
+        </div>
+      </div>
+
+      <!-- Tables and Maintenance Details -->
+      <div class="glass p-6 rounded-3xl border border-slate-200/50 space-y-4">
+        <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
+          <i data-lucide="layers" class="w-4 h-4 text-slate-500"></i> Ma'lumotlar Bazasi Jadvallari
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div class="p-3 rounded-2xl bg-[#19060f] border border-slate-200/40 flex justify-between items-center">
+            <span class="font-bold text-slate-700">products (Mahsulotlar katalogi)</span>
+            <span class="px-2.5 py-0.5 rounded-lg bg-[#280c18] font-mono text-slate-600 font-bold" id="badge-products">0 qator</span>
+          </div>
+          <div class="p-3 rounded-2xl bg-[#19060f] border border-slate-200/40 flex justify-between items-center">
+            <span class="font-bold text-slate-700">sales (Savdolar va cheklar)</span>
+            <span class="px-2.5 py-0.5 rounded-lg bg-[#280c18] font-mono text-slate-600 font-bold" id="badge-sales">0 qator</span>
+          </div>
+          <div class="p-3 rounded-2xl bg-[#19060f] border border-slate-200/40 flex justify-between items-center">
+            <span class="font-bold text-slate-700">customers (Mijozlar va qarz balansi)</span>
+            <span class="px-2.5 py-0.5 rounded-lg bg-[#280c18] font-mono text-slate-600 font-bold" id="badge-customers">0 qator</span>
+          </div>
+          <div class="p-3 rounded-2xl bg-[#19060f] border border-slate-200/40 flex justify-between items-center">
+            <span class="font-bold text-slate-700">categories (Tovar toifalari)</span>
+            <span class="px-2.5 py-0.5 rounded-lg bg-[#280c18] font-mono text-slate-600 font-bold" id="badge-categories">0 qator</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    window.__ORZU_APP_NAME__ = 'db';
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/db/stats');
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('db-path').innerText = data.path;
+          document.getElementById('db-size').innerText = data.size_kb;
+          document.getElementById('count-products').innerText = data.products_count;
+          document.getElementById('count-sales').innerText = data.sales_count;
+          document.getElementById('count-customers').innerText = data.customers_count;
+
+          document.getElementById('badge-products').innerText = data.products_count + " tovar";
+          document.getElementById('badge-sales').innerText = data.sales_count + " chek";
+          document.getElementById('badge-customers').innerText = data.customers_count + " mijoz";
+          document.getElementById('badge-categories').innerText = data.categories_count + " toifa";
+        }
+      } catch (e) {
+        console.error("DB stats load error:", e);
+      }
+    }
+
+    async function runVacuum() {
+      try {
+        const res = await fetch('/api/db/vacuum', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          alert("Ma'lumotlar bazasi muvaffaqiyatli optimallashtirildi va siqildi!");
+          await loadStats();
+        } else {
+          alert("Xatolik: " + data.error);
+        }
+      } catch (e) {
+        alert("Server bilan aloqa xatosi!");
+      }
+    }
+
+    loadStats();
+    setInterval(loadStats, 10000);
+    lucide.createIcons();
+  </script>
+  <script src="/shared/app_tabs.js"></script>
+  <script src="/shared/virtual_keyboard.js"></script>
+</body>
+</html>

@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"syscall"
 	"unsafe"
 )
@@ -30,11 +31,17 @@ var (
 	procPostMessageW        = user32.NewProc("PostMessageW")
 	procLoadIconW           = user32.NewProc("LoadIconW")
 	procGetModuleHandleW    = kernel32.NewProc("GetModuleHandleW")
+	procEnumWindows         = user32.NewProc("EnumWindows")
+	procGetWindowTextW      = user32.NewProc("GetWindowTextW")
+	procGetWindowTextLenW   = user32.NewProc("GetWindowTextLengthW")
+	procShowWindow          = user32.NewProc("ShowWindow")
+	procIsWindowVisible     = user32.NewProc("IsWindowVisible")
 
 	procShell_NotifyIconW = shell32.NewProc("Shell_NotifyIconW")
 )
 
 const (
+	SW_RESTORE      = 9
 	WM_USER         = 0x0400
 	WM_TRAYCALLBACK = WM_USER + 1
 	WM_RBUTTONUP    = 0x0205
@@ -152,11 +159,11 @@ func showMenu(hWnd uintptr) {
 		return
 	}
 
-	appendMenuItem(hMenu, ID_MENU_KASSA, "🛒 ORZU Kassa (Sotuv ekrani)")
-	appendMenuItem(hMenu, ID_MENU_ADMIN, "📊 ORZU Boshqaruv (Admin panel)")
-	appendMenuItem(hMenu, ID_MENU_INSTALLER, "📦 O'rnatuvchi markazi (Setup)")
+	appendMenuItem(hMenu, ID_MENU_KASSA, "ORZU Kassa (Sotuv ekrani)")
+	appendMenuItem(hMenu, ID_MENU_ADMIN, "ORZU Boshqaruv (Admin panel)")
+	appendMenuItem(hMenu, ID_MENU_INSTALLER, "O'rnatuvchi markazi (Setup)")
 	appendSeparator(hMenu)
-	appendMenuItem(hMenu, ID_MENU_EXIT, "🚪 Chiqish (Serverni to'xtatish)")
+	appendMenuItem(hMenu, ID_MENU_EXIT, "Chiqish (Serverni to'xtatish)")
 
 	var pt POINT
 	procGetCursorPos.Call(uintptr(unsafe.Pointer(&pt)))
@@ -186,6 +193,7 @@ func InitTray(port string) error {
 	if runtime.GOOS != "windows" {
 		return nil
 	}
+	runtime.LockOSThread()
 	serverPort = port
 
 	hInstance, _, _ := procGetModuleHandleW.Call(0)
@@ -227,13 +235,13 @@ func InitTray(port string) error {
 	globalNID.UCallbackMessage = WM_TRAYCALLBACK
 	globalNID.HIcon = hIcon
 
-	tip, _ := syscall.UTF16FromString(fmt.Sprintf("ORZU POS Server (:%s) — Faol", port))
+	tip, _ := syscall.UTF16FromString(fmt.Sprintf("ORZU POS Server (:%s)", port))
 	copy(globalNID.SzTip[:], tip)
 
 	// Balloon notification
 	balloonTitle, _ := syscall.UTF16FromString("ORZU POS Ishga tushdi")
 	copy(globalNID.SzInfoTitle[:], balloonTitle)
-	balloonInfo, _ := syscall.UTF16FromString(fmt.Sprintf("Server :%s portida faol. Kassa uchun bosing.", port))
+	balloonInfo, _ := syscall.UTF16FromString(fmt.Sprintf("Server :%s portida ishlamoqda. Kassa uchun bosing.", port))
 	copy(globalNID.SzInfo[:], balloonInfo)
 	globalNID.DwInfoFlags = 0x00000001 // NIIF_INFO
 
@@ -255,9 +263,22 @@ func InitTray(port string) error {
 
 // OpenApp opens the given URL in Edge app mode or browser without showing any console window
 func OpenApp(url string) {
+	edgeArgs := []string{
+		"--app=" + url,
+		"--kiosk-printing",
+		"--no-pdf-header-footer",
+		"--disable-print-preview",
+		`--user-data-dir=D:\ORZU_POS\data\kassa_profile`,
+		"--no-first-run",
+		"--no-default-browser-check",
+		"--disable-features=TranslateUI",
+		"--force-dark-mode",
+		"--start-maximized",
+	}
+
 	edgePath := `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`
 	if _, err := os.Stat(edgePath); err == nil {
-		cmd := exec.Command(edgePath, "--app="+url, "--force-dark-mode", "--start-maximized")
+		cmd := exec.Command(edgePath, edgeArgs...)
 		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 		_ = cmd.Start()
 		return
@@ -265,7 +286,7 @@ func OpenApp(url string) {
 
 	edge64 := `C:\Program Files\Microsoft\Edge\Application\msedge.exe`
 	if _, err := os.Stat(edge64); err == nil {
-		cmd := exec.Command(edge64, "--app="+url, "--force-dark-mode", "--start-maximized")
+		cmd := exec.Command(edge64, edgeArgs...)
 		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 		_ = cmd.Start()
 		return
@@ -275,4 +296,42 @@ func OpenApp(url string) {
 	cmd := exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	_ = cmd.Start()
+}
+
+// ActivateExistingWindow searches for an existing top-level window whose title contains
+// titleSubstring (case-insensitive). If found, it unminimizes and brings it to the foreground, returning true.
+func ActivateExistingWindow(titleSubstring string) bool {
+	if runtime.GOOS != "windows" {
+		return false
+	}
+	var targetHWnd uintptr
+	lowerSearch := strings.ToLower(titleSubstring)
+
+	cb := syscall.NewCallback(func(hWnd uintptr, lParam uintptr) uintptr {
+		vis, _, _ := procIsWindowVisible.Call(hWnd)
+		if vis == 0 {
+			return 1 // continue
+		}
+		length, _, _ := procGetWindowTextLenW.Call(hWnd)
+		if length == 0 {
+			return 1
+		}
+		buf := make([]uint16, length+1)
+		procGetWindowTextW.Call(hWnd, uintptr(unsafe.Pointer(&buf[0])), uintptr(length+1))
+		title := syscall.UTF16ToString(buf)
+		if strings.Contains(strings.ToLower(title), lowerSearch) {
+			targetHWnd = hWnd
+			return 0 // stop enum
+		}
+		return 1 // continue enum
+	})
+
+	procEnumWindows.Call(cb, 0)
+
+	if targetHWnd != 0 {
+		procShowWindow.Call(targetHWnd, uintptr(SW_RESTORE))
+		procSetForegroundWindow.Call(targetHWnd)
+		return true
+	}
+	return false
 }

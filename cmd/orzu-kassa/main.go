@@ -8,13 +8,24 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/izzatbekulkanov/orzu-pos/internal/installer"
 	"github.com/izzatbekulkanov/orzu-pos/internal/tray"
 )
 
 func main() {
+	// 1. Agar Kassa oynasi allaqachon ochilgan bo'lsa, uni oldinga chiqarish (dublikat ochilmasin)
+	if tray.ActivateExistingWindow("ORZU Kassa") {
+		return
+	}
+
+	// 2. O'rnatuvchi o'rnatilganligini tekshirish
+	if !installer.EnsureInstalled("ORZU Kassa") {
+		return
+	}
+
 	targetURL := "http://localhost:8080"
 
-	// 1. Agar server yoqilmagan bo'lsa, uni fonda (terminal oynamasisiz) ishga tushirish
+	// 3. Agar server yoqilmagan bo'lsa, uni ishga tushirish
 	if !isServerUp(targetURL) {
 		startServerSilently()
 		// Server yuklanishini 3 soniyagacha kutish
@@ -26,7 +37,7 @@ func main() {
 		}
 	}
 
-	// 2. Kassa oynasini terminalsiz, toza ilova sifatida ochish
+	// 4. Kassa oynasini ochish
 	tray.OpenApp(targetURL)
 }
 

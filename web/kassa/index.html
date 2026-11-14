@@ -1,246 +1,433 @@
 <!DOCTYPE html>
-<html lang="uz" class="h-full bg-[#120408] text-rose-50">
+<html lang="uz" class="h-full">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#1c0810">
-  <meta name="msapplication-navbutton-color" content="#1c0810">
-  <meta name="apple-mobile-web-app-status-bar-style" content="#1c0810">
-  <meta name="color-scheme" content="dark">
-  <title>ORZU POS — Olmos Orzu market (Kassa)</title>
-  <link rel="icon" type="image/png" href="/icons/kassa.png">
-  <link rel="manifest" href="/manifest.json">
-  
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ORZU POS - Olmos Orzu market Kassa</title>
+
+  <!-- 100% Offline Local Resources -->
+  <link rel="stylesheet" href="/shared/app.css">
+  <script src="/shared/tailwind.js"></script>
+  <script src="/shared/lucide.min.js"></script>
+
+  <!-- THERMAL PRINTER (80mm / 58mm) PRINT STYLES - ZERO MARGINS, NO HEADERS/FOOTERS -->
   <style>
-    :root {
-      --bg-bar: #1c0810;
-      --bg-main: #120408;
-      --bg-card: #230a14;
-      --border-burgundy: #431221;
-      --border-accent: #be123c;
+    @page {
+      margin: 0 !important;
+      size: 80mm auto;
     }
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #120408; }
-    ::-webkit-scrollbar-thumb { background: #451020; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #881337; }
-    .glass { background: rgba(35, 10, 20, 0.85); backdrop-filter: blur(14px); border: 1px solid #431221; }
-    .glass-card { background: #230a14; border: 1px solid #431221; }
+    @page :first { margin: 0 !important; }
+    @page :left { margin: 0 !important; }
+    @page :right { margin: 0 !important; }
+    @media print {
+      *, html, body {
+        background: #fff !important;
+        color: #000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body * {
+        visibility: hidden !important;
+      }
+      #thermal-receipt-print, #thermal-receipt-print * {
+        visibility: visible !important;
+      }
+      #thermal-receipt-print {
+        display: block !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 76mm !important;
+        padding: 1mm 2mm !important;
+        font-family: 'Courier New', Courier, monospace !important;
+        font-size: 11px !important;
+        line-height: 1.25 !important;
+        color: #000 !important;
+      }
+    }
   </style>
 </head>
-<body class="h-full flex flex-col font-sans select-none overflow-hidden bg-[#120408]">
+<body class="h-full flex flex-col font-sans select-none overflow-hidden bg-[#f1f5f9] text-slate-800">
 
-  <!-- TOP BAR (Unified Burgundy Bar matching - □ ✕ window frame & bottom checkout) -->
-  <header class="h-16 bg-[#1c0810] border-b border-[#431221] px-5 flex items-center justify-between z-20 shadow-xl shrink-0">
+  <!-- DEDICATED THERMAL RECEIPT PRINT AREA (ONLY VISIBLE ON PRINT) -->
+  <div id="thermal-receipt-print" class="hidden"></div>
+
+  <!-- TOP BAR (Solid Luxury Burgundy Bar, High Daylight Contrast) -->
+  <header class="h-16 bg-[#881337] border-b border-[#70102e] px-5 flex items-center justify-between z-20 shadow-md shrink-0">
     <!-- Brand / Store Info -->
-    <div class="flex items-center space-x-3.5">
-      <img src="/icons/kassa.png" class="w-10 h-10 object-contain rounded-2xl p-1 bg-[#280c18] border border-rose-900/60 shadow-lg shadow-rose-950/60" alt="Kassa">
+    <div class="flex items-center space-x-3.5 shrink-0">
+      <img src="/icons/kassa.png" class="w-10 h-10 object-contain rounded-2xl p-1 bg-white/10 border border-white/20 shadow-sm" alt="Kassa">
       <div>
-        <h1 class="font-black text-lg tracking-wide bg-gradient-to-r from-amber-200 via-rose-100 to-rose-300 bg-clip-text text-transparent flex items-center gap-2 leading-none">
+        <h1 class="font-black text-lg tracking-wide text-white flex items-center gap-2 leading-none">
           ORZU POS
-          <span class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-700/50 font-bold flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Faol
-          </span>
+          <span class="text-[10px] px-2 py-0.5 rounded-md bg-white text-[#881337] font-black tracking-wider">KASSA</span>
         </h1>
-        <p class="text-xs text-rose-300/80 font-bold tracking-wide mt-1">Olmos Orzu market — Kassa 1</p>
+        <p class="text-xs text-rose-100 font-bold tracking-wide mt-1" id="store-title-header">Olmos Orzu market</p>
       </div>
     </div>
 
-    <!-- Wide Barcode / Search Box -->
-    <div class="flex-1 max-w-xl mx-8">
+    <!-- Wide Barcode / Search Box (Global Scanner Compatible) -->
+    <div class="flex-1 max-w-md mx-4">
       <div class="relative">
-        <i data-lucide="barcode" class="w-5 h-5 absolute left-3.5 top-3 text-rose-400"></i>
-        <input type="text" id="barcode-input" autofocus placeholder="Shtrix-kodni skanerlang yoki tovar nomini yozing... (Enter ↵)"
-               class="w-full bg-[#260c17] border border-rose-900/60 rounded-2xl pl-11 pr-24 py-2.5 text-sm text-white placeholder-rose-300/40 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/30 transition shadow-inner font-medium">
-        <span class="absolute right-3 top-2.5 px-2 py-0.5 rounded-lg bg-rose-950 text-rose-300 border border-rose-900/60 text-[10px] font-mono font-bold">
+        <i data-lucide="barcode" class="w-5 h-5 absolute left-3.5 top-3 text-[#881337]"></i>
+        <input type="text" id="barcode-input" autofocus placeholder="Shtrix-kod, 4 xonali kod yoki tovar nomi... (Skaner)"
+               class="w-full bg-white border border-rose-300 rounded-2xl pl-11 pr-24 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-white transition shadow-sm font-bold">
+        <span class="absolute right-3 top-2.5 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-mono font-bold">
           Enter ↵
         </span>
       </div>
     </div>
 
+    <!-- Unified Chrome-like Active App Tabs Bar (Shows only active apps) -->
+    <div id="orzu-app-tabs" class="mx-2"></div>
+    <div id="kassa-update-badge" class="hidden shrink-0"></div>
+
     <!-- Actions & Controls -->
-    <div class="flex items-center space-x-3">
-      <button onclick="toggleFullscreen()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#280c18] hover:bg-[#381022] text-xs font-bold text-rose-200 border border-rose-900/40 transition shadow-sm" title="To'liq ekran (F11)">
-        <i data-lucide="maximize-2" class="w-4 h-4 text-rose-400"></i>
+    <div class="flex items-center space-x-3 shrink-0">
+      <button onclick="window.__orzuVirtualKeyboard?.toggle()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold text-white border border-white/30 transition shadow-sm cursor-pointer" title="Sensor klaviaturani ochish / yopish">
+        <i data-lucide="keyboard" class="w-4 h-4 text-white"></i>
+        <span class="hidden md:inline">Klaviatura</span>
+      </button>
+
+      <button onclick="toggleFullscreen()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold text-white border border-white/30 transition shadow-sm cursor-pointer" title="To'liq ekran (F11)">
+        <i data-lucide="maximize-2" class="w-4 h-4 text-white"></i>
         <span class="hidden md:inline">To'liq ekran</span>
       </button>
-      <a href="/admin" target="_blank" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#280c18] hover:bg-[#381022] text-xs font-bold text-rose-200 border border-rose-900/40 transition shadow-sm">
-        <i data-lucide="layout-dashboard" class="w-4 h-4 text-rose-400"></i>
-        <span class="hidden md:inline">Boshqaruv</span>
-      </a>
-      <div class="flex items-center gap-2 pl-3 border-l border-rose-900/40">
-        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-rose-900 to-rose-700 flex items-center justify-center text-xs font-black text-white border border-rose-500/40 shadow-sm">
+
+      <!-- Active Cashier & Lock Button -->
+      <div class="flex items-center gap-2 pl-3 border-l border-white/20">
+        <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center text-xs font-black text-[#881337] shadow-sm" id="cashier-avatar">
           K1
         </div>
         <div class="text-left text-xs leading-tight">
-          <p class="font-bold text-white" id="cashier-name">Kassir</p>
-          <p class="text-rose-400 font-mono text-[11px]" id="clock-display">--:--</p>
+          <p class="font-bold text-white truncate max-w-[120px]" id="cashier-name">Kassir</p>
+          <p class="text-rose-200 font-mono text-[11px]" id="clock-display">--:--</p>
         </div>
+        <button onclick="lockTerminal()" title="Smenani qulflash (PIN orqali qayta ochish)" class="p-2 rounded-xl bg-white/15 hover:bg-white/30 text-white border border-white/30 transition cursor-pointer">
+          <i data-lucide="lock" class="w-4 h-4"></i>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- MAIN WORKSPACE: 2-Column Professional Supermarket Till -->
+  <!-- ============================================================== -->
+  <!-- MAIN WORKSPACE: TOVARLAR CHAPDA (65%), TANLANGANLAR O'NGDA (35%) -->
+  <!-- ============================================================== -->
   <main class="flex-1 flex overflow-hidden">
 
-    <!-- LEFT COLUMN: ACTIVE CART / RECEIPT TABLE (55% Width) -->
-    <section class="w-[55%] flex flex-col bg-[#16050b] border-r border-[#431221] overflow-hidden">
-      <!-- Cart Subheader -->
-      <div class="px-5 py-3 bg-[#1c0810] border-b border-[#431221] flex items-center justify-between shrink-0">
-        <div class="flex items-center gap-2.5">
-          <i data-lucide="receipt" class="w-5 h-5 text-rose-400"></i>
-          <h2 class="font-extrabold text-sm text-white tracking-wide">Xarid Cheki</h2>
-          <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-900/40 text-rose-300 border border-rose-800/40" id="cart-item-count">0 tovar</span>
+    <!-- CHAP TARAF (LEFT COLUMN - 65%): TOVARLAR KATALOGI VA TEZKOR KARTALAR -->
+    <section class="w-[65%] flex flex-col bg-[#f1f5f9] border-r border-slate-200 overflow-hidden">
+      <!-- Category Tabs (Only Categories With Products!) -->
+      <div class="px-4 py-3 bg-white border-b border-slate-200 shrink-0">
+        <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-none" id="categories-container">
+          <button class="cat-tab px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap bg-[#881337] text-white shadow-sm border border-[#881337] flex items-center gap-1.5 cursor-pointer" onclick="filterCategory(null, this)">
+            <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Barcha tovarlar
+          </button>
         </div>
-        <button onclick="clearCart()" class="text-xs text-rose-400 hover:text-rose-300 transition flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg hover:bg-rose-950/40">
+      </div>
+
+      <!-- Products Grid (Daylight High-Contrast Cards, Never Stretch Vertically) -->
+      <div class="flex-1 overflow-y-auto p-4 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 content-start items-start auto-rows-max" id="products-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- O'NG TARAF (RIGHT COLUMN - 35%): TANLANGANLAR / XARID CHEKI VA RO'YXAT -->
+    <section class="w-[35%] flex flex-col bg-white overflow-hidden border-l border-slate-200">
+      <!-- Cart Subheader -->
+      <div class="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="shopping-cart" class="w-5 h-5 text-[#881337]"></i>
+          <h2 class="font-black text-sm text-slate-900 tracking-wide">Xarid Cheki</h2>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-100 text-[#881337] border border-rose-200" id="cart-item-count">0 tovar</span>
+        </div>
+        <button onclick="clearCart()" class="text-xs text-red-600 hover:text-red-700 transition flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 cursor-pointer">
           <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Tozalash (Del)
         </button>
       </div>
 
       <!-- Table Header -->
-      <div class="px-5 py-2.5 bg-[#19060e] border-b border-[#431221] grid grid-cols-12 text-[11px] font-bold text-rose-300/70 uppercase tracking-wider shrink-0">
-        <span class="col-span-1 text-center">№</span>
-        <span class="col-span-5">Tovar nomi / Shtrix-kod</span>
+      <div class="px-4 py-2.5 bg-slate-100 border-b border-slate-200 grid grid-cols-12 text-[11px] font-bold text-slate-600 uppercase tracking-wider shrink-0">
+        <span class="col-span-1 text-center">No</span>
+        <span class="col-span-5">Tovar nomi</span>
         <span class="col-span-2 text-right">Narxi</span>
         <span class="col-span-2 text-center">Miqdori</span>
         <span class="col-span-2 text-right pr-2">Jami</span>
       </div>
 
       <!-- Scrollable Cart Table Rows -->
-      <div class="flex-1 overflow-y-auto px-4 py-2 space-y-1.5" id="cart-items">
-        <div class="h-full flex flex-col items-center justify-center text-rose-300/40 space-y-3">
-          <i data-lucide="shopping-bag" class="w-16 h-16 text-rose-900/40"></i>
-          <p class="text-sm font-bold text-rose-200/80">Xarid cheki bo'sh</p>
-          <p class="text-xs text-rose-400/60 text-center max-w-xs">
-            Shtrix-kodni skanerlang yoki o'ng tomondagi tovar kartasini bosing.
+      <div class="flex-1 overflow-y-auto px-3.5 py-2 space-y-1.5" id="cart-items">
+        <div class="h-full flex flex-col items-center justify-center text-slate-400 space-y-3">
+          <i data-lucide="shopping-bag" class="w-16 h-16 text-slate-300"></i>
+          <p class="text-sm font-bold text-slate-700">Xarid cheki bo'sh</p>
+          <p class="text-xs text-slate-500 text-center max-w-xs">
+            Shtrix-kodni skanerlang yoki chap tomondagi tovar kartasini bosing.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- RIGHT COLUMN: TOUCH PRODUCT CATALOG & QUICK CARDS (45% Width) -->
-    <section class="w-[45%] flex flex-col bg-[#120408] overflow-hidden">
-      <!-- Category Tabs (Horizontal Scroll) -->
-      <div class="px-4 py-3 bg-[#19060e] border-b border-[#431221] shrink-0">
-        <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-none" id="categories-container">
-          <button class="cat-tab px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap bg-gradient-to-r from-rose-800 to-rose-700 text-white shadow-lg border border-rose-500/40" onclick="filterCategory(null, this)">
-            Barcha tovarlar
-          </button>
-        </div>
-      </div>
-
-      <!-- Products Grid (Big, Readable, Touch-friendly Cards) -->
-      <div class="flex-1 overflow-y-auto p-4 grid grid-cols-2 lg:grid-cols-3 gap-3.5" id="products-grid">
-        <!-- Rendered dynamically -->
-      </div>
-    </section>
-
   </main>
 
-  <!-- BOTTOM BAR (Unified Burgundy Bar matching Top Bar exactly) -->
-  <footer class="h-24 bg-[#1c0810] border-t border-[#431221] px-6 flex items-center justify-between z-20 shadow-2xl shrink-0">
-    <!-- Left: Cart Quick Summary & Customer Info -->
+  <!-- BOTTOM BAR (Clean Daylight POS Bar) -->
+  <footer class="h-24 bg-white border-t border-slate-200 px-6 flex items-center justify-between z-20 shadow-lg shrink-0">
+    <!-- Left: Cart Quick Summary -->
     <div class="flex items-center space-x-6 text-xs">
       <div class="space-y-0.5">
-        <p class="text-rose-300/70 font-semibold">Jami tovarlar:</p>
-        <p class="text-base font-black text-white" id="bottom-qty-display">0 dona</p>
+        <p class="text-slate-500 font-bold">Tanlangan tovarlar:</p>
+        <p class="text-base font-black text-slate-900" id="bottom-qty-display">0</p>
       </div>
-      <div class="w-px h-10 bg-rose-900/40"></div>
+      <div class="w-px h-10 bg-slate-200"></div>
       <div class="space-y-0.5">
-        <p class="text-rose-300/70 font-semibold">Chegirma:</p>
-        <p class="text-base font-black text-amber-400" id="discount-display">0 so'm</p>
+        <p class="text-slate-500 font-bold">Chegirma:</p>
+        <p class="text-base font-black text-amber-600" id="discount-display">0 so'm</p>
       </div>
-      <div class="w-px h-10 bg-rose-900/40"></div>
-      <div class="hidden lg:block text-rose-400/80 text-[11px] font-mono leading-tight">
-        <p>Tezkor tugmalar:</p>
-        <p class="text-rose-200">F2: Naqd | F3: Karta | F4: QR | F5: Nasiya</p>
+      <div class="w-px h-10 bg-slate-200"></div>
+      <div class="hidden xl:block text-slate-500 text-[11px] font-mono leading-tight">
+        <p class="font-bold text-slate-700">Tezkor tugmalar:</p>
+        <p class="text-slate-600">F2: Naqd | F3: Karta | F4: QR | F5: Nasiya</p>
       </div>
     </div>
 
-    <!-- Center/Right: MASSIVE GRAND TOTAL DISPLAY -->
+    <!-- Right: MASSIVE GRAND TOTAL & 4 PAYMENT BUTTONS -->
     <div class="flex items-center space-x-6">
       <div class="text-right">
-        <span class="block text-xs font-extrabold uppercase tracking-wider text-rose-300/80">JAMI TO'LOV:</span>
-        <span class="text-3xl font-black bg-gradient-to-r from-amber-200 via-rose-100 to-rose-300 bg-clip-text text-transparent font-mono tracking-tight" id="total-display">
+        <span class="block text-xs font-extrabold uppercase tracking-wider text-slate-500">JAMI TO'LOV:</span>
+        <span class="text-3xl font-black text-[#881337] font-mono tracking-tight" id="total-display">
           0 SO'M
         </span>
       </div>
 
-      <!-- 4 Prominent Payment Action Buttons -->
+      <!-- 4 Prominent Payment Action Buttons (Solid High Contrast Colors) -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <button onclick="openPaymentModal('cash')" class="py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 hover:from-emerald-700 hover:to-emerald-600 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-950/40 border border-emerald-600/30 active:scale-95 transition">
+        <button onclick="openPaymentModal('cash')" class="py-3 px-4 rounded-xl bg-[#059669] hover:bg-[#047857] text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md border border-[#059669] active:scale-95 transition cursor-pointer">
           <i data-lucide="banknote" class="w-4 h-4"></i> Naqd (F2)
         </button>
-        <button onclick="openPaymentModal('card')" class="py-3 px-4 rounded-xl bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-rose-950/40 border border-rose-500/40 active:scale-95 transition">
+        <button onclick="openPaymentModal('card')" class="py-3 px-4 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md border border-[#2563eb] active:scale-95 transition cursor-pointer">
           <i data-lucide="credit-card" class="w-4 h-4"></i> Karta (F3)
         </button>
-        <button onclick="openPaymentModal('qr')" class="py-3 px-3.5 rounded-xl bg-gradient-to-r from-purple-900 to-purple-800 hover:from-purple-800 hover:to-purple-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg border border-purple-600/30 active:scale-95 transition">
+        <button onclick="openPaymentModal('qr')" class="py-3 px-3.5 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md border border-[#7c3aed] active:scale-95 transition cursor-pointer">
           <i data-lucide="qr-code" class="w-4 h-4"></i> Click (F4)
         </button>
-        <button onclick="openPaymentModal('debt')" class="py-3 px-3.5 rounded-xl bg-gradient-to-r from-amber-800 to-amber-700 hover:from-amber-700 hover:to-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg border border-amber-600/30 active:scale-95 transition">
+        <button onclick="openPaymentModal('debt')" class="py-3 px-3.5 rounded-xl bg-[#d97706] hover:bg-[#b45309] text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md border border-[#d97706] active:scale-95 transition cursor-pointer">
           <i data-lucide="book-open" class="w-4 h-4"></i> Nasiya (F5)
         </button>
       </div>
     </div>
   </footer>
 
-  <!-- PAYMENT MODAL -->
-  <div id="payment-modal" class="fixed inset-0 bg-[#0c0204]/85 backdrop-blur-md hidden items-center justify-center z-50 p-4">
-    <div class="w-full max-w-md rounded-3xl p-6 shadow-2xl bg-[#1d070f] border border-rose-800/40 animate-in fade-in zoom-in-95 duration-150">
-      <div class="flex justify-between items-center pb-3 border-b border-rose-900/50">
-        <h3 class="font-black text-base text-white flex items-center gap-2" id="modal-title">
-          <i data-lucide="wallet" class="w-5 h-5 text-rose-400"></i> To'lovni qabul qilish
-        </h3>
-        <button onclick="closePaymentModal()" class="text-rose-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+  <!-- ==================== TOUCH QUANTITY EDIT MODAL (DECIMAL WEIGHT SUPPORT: 1.4, 1.5, etc.) ==================== -->
+  <div id="modal-qty-edit" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="w-full max-w-sm rounded-3xl p-6 shadow-2xl bg-white border border-slate-200 space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+        <div>
+          <h3 class="font-black text-sm text-slate-900" id="qty-modal-prod-name">Tovar miqdori</h3>
+          <p class="text-[11px] text-emerald-700 font-bold" id="qty-modal-stock-hint">Mavjud qoldiq: 0</p>
+        </div>
+        <button onclick="closeQtyModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-xl">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
 
-      <div class="py-4 space-y-4">
-        <div class="text-center p-4 rounded-2xl bg-[#260913] border border-rose-900/40 shadow-inner">
-          <p class="text-xs text-rose-300/70 font-semibold">Jami to'lov summasi:</p>
-          <p class="text-3xl font-black bg-gradient-to-r from-amber-200 via-rose-100 to-rose-200 bg-clip-text text-transparent mt-1 font-mono" id="modal-amount">0 so'm</p>
+      <div>
+        <input type="text" id="qty-edit-input" autofocus data-no-vk="true"
+               class="w-full bg-slate-50 border border-slate-300 rounded-2xl px-4 py-3 text-2xl font-mono font-black text-[#881337] text-center focus:outline-none focus:border-[#881337] focus:bg-white shadow-inner">
+      </div>
+
+      <!-- Quick presets for weight / pieces -->
+      <div class="grid grid-cols-4 gap-1.5 text-xs font-bold font-mono">
+        <button type="button" onclick="addQtyPreset(0.1)" class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">+0.1</button>
+        <button type="button" onclick="addQtyPreset(0.25)" class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">+0.25</button>
+        <button type="button" onclick="addQtyPreset(0.5)" class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">+0.5</button>
+        <button type="button" onclick="addQtyPreset(1.0)" class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">+1.0</button>
+      </div>
+
+      <!-- Touch Numpad for Monoblock Screen -->
+      <div class="grid grid-cols-3 gap-2 font-mono font-bold text-base">
+        <button type="button" onclick="pressQtyPad('7')" class="py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-sm">7</button>
+        <button type="button" onclick="pressQtyPad('8')" class="py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-sm">8</button>
+        <button type="button" onclick="pressQtyPad('9')" class="py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-sm">9</button>
+        <button type="button" onclick="pressQtyPad('4')" class="py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-sm">4</button>
+        <button type="button" onclick="pressQtyPad('5')" class="py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-sm">5</button>
+        <button type="button" onclick="pressQtyPad('6')" class="py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-sm">6</button>
+        <button type="button" onclick="pressQtyPad('1')" class="py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-sm">1</button>
+        <button type="button" onclick="pressQtyPad('2')" class="py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-sm">2</button>
+        <button type="button" onclick="pressQtyPad('3')" class="py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-sm">3</button>
+        <button type="button" onclick="pressQtyPad('0')" class="py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 shadow-sm">0</button>
+        <button type="button" onclick="pressQtyPad('.')" class="py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-[#881337] font-black text-lg border border-slate-200 shadow-sm">.</button>
+        <button type="button" onclick="pressQtyPad('backspace')" class="py-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold">⌫</button>
+      </div>
+
+      <div class="pt-2 flex gap-2">
+        <button onclick="closeQtyModal()" class="w-1/3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300">
+          Bekor
+        </button>
+        <button onclick="confirmQtyEdit()" class="flex-1 py-2.5 rounded-xl bg-[#059669] hover:bg-[#047857] text-white font-bold text-xs shadow-md border border-[#059669] flex items-center justify-center gap-1.5">
+          <i data-lucide="check" class="w-4 h-4"></i> Tasdiqlash
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CASHIER PIN LOCK SCREEN (TOUCH MONOBLOCK COMPATIBLE) ==================== -->
+  <div id="cashier-lock-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md hidden items-center justify-center z-[99999] p-4">
+    <div class="w-full max-w-sm rounded-3xl p-6 shadow-2xl bg-white border border-slate-200 space-y-5 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-[#881337] flex items-center justify-center mx-auto text-white shadow-lg">
+        <i data-lucide="shield-check" class="w-8 h-8"></i>
+      </div>
+
+      <div>
+        <h2 class="font-black text-lg text-slate-900">Kassa Terminalini Ochish</h2>
+        <p class="text-xs text-slate-500 mt-1">Kassirni tanlang va shaxsiy PIN kodni kiriting</p>
+      </div>
+
+      <!-- Cashier Custom Styled Dropdown -->
+      <div class="relative text-left">
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">Kassir (Xodim):</label>
+        <button type="button" id="lock-cashier-btn" onclick="toggleCashierDropdown(event)"
+                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-left hover:border-[#881337] focus:outline-none transition">
+          <div class="flex items-center gap-3 min-w-0">
+            <div id="lock-cashier-badge" class="w-8 h-8 rounded-lg bg-[#881337] flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm">
+              K1
+            </div>
+            <div class="min-w-0">
+              <div id="lock-cashier-display-name" class="font-bold text-sm text-slate-900 truncate">Kassir tanlanmagan</div>
+              <div id="lock-cashier-display-sub" class="text-[11px] text-slate-500 truncate">Tizimga kirish uchun tanlang</div>
+            </div>
+          </div>
+          <i data-lucide="chevron-down" id="lock-cashier-chevron" class="w-4 h-4 text-slate-500 shrink-0 transition-transform duration-200"></i>
+        </button>
+
+        <!-- Dropdown panel -->
+        <div id="lock-cashier-dropdown-panel" class="hidden absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-48 overflow-y-auto p-1.5 space-y-1">
+          <!-- Populated dynamically with cashier list -->
         </div>
 
-        <!-- Cash Section -->
+        <select id="lock-cashier-select" onchange="onLockCashierChange()" class="hidden">
+          <!-- Populated from /api/cashiers -->
+        </select>
+      </div>
+
+      <!-- PIN Display with Visibility Eye Toggle -->
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="block text-xs font-bold text-slate-700 text-left">PIN Kod:</label>
+          <button type="button" onclick="toggleLockPinVisibility()" class="text-xs font-semibold text-[#881337] hover:underline flex items-center gap-1 transition">
+            <i data-lucide="eye" id="lock-pin-eye-icon" class="w-3.5 h-3.5"></i>
+            <span id="lock-pin-eye-text">Ko'rish</span>
+          </button>
+        </div>
+        <div class="relative flex items-center">
+          <input type="password" id="lock-pin-display" readonly maxlength="8" placeholder="••••" data-no-vk="true"
+                 class="w-full bg-slate-50 border border-slate-300 rounded-2xl pl-4 pr-12 py-3 text-3xl font-mono font-black text-[#881337] text-center tracking-[0.5em] focus:outline-none shadow-inner">
+          <button type="button" onclick="toggleLockPinVisibility()" class="absolute right-3 text-slate-400 hover:text-slate-700 p-2 rounded-xl transition">
+            <i data-lucide="eye" id="lock-pin-eye-icon-btn" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="lock-error-msg" class="text-xs font-bold text-red-600 hidden">PIN kod noto'g'ri! Qayta urinib ko'ring.</div>
+
+      <!-- Touch Numpad for Fast Monoblock PIN Entry -->
+      <div class="grid grid-cols-3 gap-2 font-mono font-bold text-lg">
+        <button type="button" onclick="pressLockPad('1')" class="py-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 active:scale-95 transition shadow-sm">1</button>
+        <button type="button" onclick="pressLockPad('2')" class="py-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 active:scale-95 transition shadow-sm">2</button>
+        <button type="button" onclick="pressLockPad('3')" class="py-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 active:scale-95 transition shadow-sm">3</button>
+        <button type="button" onclick="pressLockPad('4')" class="py-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 active:scale-95 transition shadow-sm">4</button>
+        <button type="button" onclick="pressLockPad('5')" class="py-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 active:scale-95 transition shadow-sm">5</button>
+        <button type="button" onclick="pressLockPad('6')" class="py-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 active:scale-95 transition shadow-sm">6</button>
+        <button type="button" onclick="pressLockPad('7')" class="py-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 active:scale-95 transition shadow-sm">7</button>
+        <button type="button" onclick="pressLockPad('8')" class="py-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 active:scale-95 transition shadow-sm">8</button>
+        <button type="button" onclick="pressLockPad('9')" class="py-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 active:scale-95 transition shadow-sm">9</button>
+        <button type="button" onclick="pressLockPad('clear')" class="py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm border border-slate-300 active:scale-95 transition font-sans font-bold">C</button>
+        <button type="button" onclick="pressLockPad('0')" class="py-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 border border-slate-200 active:scale-95 transition shadow-sm">0</button>
+        <button type="button" onclick="pressLockPad('backspace')" class="py-3.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 active:scale-95 transition font-bold">⌫</button>
+      </div>
+
+      <button id="btn-unlock-terminal" onclick="submitUnlockTerminal()" class="w-full py-3.5 rounded-xl bg-[#881337] hover:bg-[#9f1239] text-white font-black text-sm shadow-md border border-[#881337] flex items-center justify-center gap-2 active:scale-95 transition">
+        <i data-lucide="unlock" class="w-4 h-4"></i> Kassaga kirish
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== PAYMENT MODAL ==================== -->
+  <div id="payment-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="w-full max-w-md rounded-3xl p-6 shadow-2xl bg-white border border-slate-200 space-y-4">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-200">
+        <h3 class="font-black text-base text-slate-900 flex items-center gap-2" id="modal-title">
+          <i data-lucide="wallet" class="w-5 h-5 text-[#881337]"></i> To'lovni qabul qilish
+        </h3>
+        <button onclick="closePaymentModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-xl transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="text-center p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-inner">
+          <span class="text-xs font-bold text-slate-500 block uppercase tracking-wide">To'lanishi lozim:</span>
+          <span class="text-3xl font-black text-[#881337] font-mono tracking-tight" id="modal-amount-display">
+            0 so'm
+          </span>
+        </div>
+
+        <!-- Cash Input Form -->
         <div id="cash-section" class="space-y-3">
           <div>
-            <label class="block text-xs font-bold text-rose-200 mb-1">Mijoz bergan summa:</label>
-            <input type="number" id="cash-received" oninput="calculateChange()" placeholder="Masalan: 100000"
-                   class="w-full bg-[#120408] border border-rose-800/60 rounded-xl px-4 py-2.5 text-xl font-black text-emerald-400 focus:outline-none focus:border-rose-500 font-mono shadow-inner">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Qabul qilingan naqd pul:</label>
+            <input type="number" id="cash-input" placeholder="Summani kiriting..."
+                   class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-lg font-mono font-bold text-slate-900 focus:outline-none focus:border-[#881337] focus:bg-white shadow-inner">
           </div>
 
-          <!-- Quick Cash Bills -->
-          <div class="flex gap-1.5 overflow-x-auto pb-1 text-xs font-black">
-            <button onclick="setCashAmount(10000)" class="px-3 py-1.5 rounded-xl bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">10 000</button>
-            <button onclick="setCashAmount(20000)" class="px-3 py-1.5 rounded-xl bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">20 000</button>
-            <button onclick="setCashAmount(50000)" class="px-3 py-1.5 rounded-xl bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">50 000</button>
-            <button onclick="setCashAmount(100000)" class="px-3 py-1.5 rounded-xl bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">100 000</button>
-            <button onclick="setCashAmount(200000)" class="px-3 py-1.5 rounded-xl bg-[#260913] hover:bg-[#380e1d] text-rose-200 border border-rose-900/40">200 000</button>
+          <!-- Quick Cash Buttons -->
+          <div class="grid grid-cols-5 gap-1.5 text-[11px] font-bold font-mono">
+            <button type="button" onclick="setCashAmount(10000)" class="px-1.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition active:scale-95 text-center">10 000</button>
+            <button type="button" onclick="setCashAmount(20000)" class="px-1.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition active:scale-95 text-center">20 000</button>
+            <button type="button" onclick="setCashAmount(50000)" class="px-1.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition active:scale-95 text-center">50 000</button>
+            <button type="button" onclick="setCashAmount(100000)" class="px-1.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition active:scale-95 text-center">100 000</button>
+            <button type="button" onclick="setCashAmount(200000)" class="px-1.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition active:scale-95 text-center">200 000</button>
           </div>
 
-          <div class="flex justify-between items-center p-3.5 rounded-2xl bg-[#260913] border border-rose-900/40">
-            <span class="text-rose-300/80 font-bold text-xs">Qaytim:</span>
-            <span class="font-black text-lg text-amber-400 font-mono" id="change-display">0 so'm</span>
+          <div class="flex justify-between items-center p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+            <span class="text-slate-600 font-bold text-xs">Qaytim:</span>
+            <span class="font-black text-lg text-emerald-700 font-mono" id="change-display">0 so'm</span>
           </div>
         </div>
 
         <!-- Customer Select (for Nasiya) -->
-        <div id="customer-section" class="hidden space-y-2">
-          <label class="block text-xs font-bold text-rose-200">Nasiyador mijozni tanlang:</label>
-          <select id="customer-select" class="w-full bg-[#120408] border border-rose-800/60 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none">
-            <!-- Populated dynamically -->
-          </select>
+        <div id="customer-section" class="hidden space-y-2 relative">
+          <label class="block text-xs font-bold text-slate-700">Nasiyador mijozni tanlang:</label>
+          <input type="hidden" id="customer-select-val" value="">
+
+          <button type="button" id="cust-dropdown-btn" onclick="toggleCustDropdown()"
+                  class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 flex items-center justify-between text-left focus:outline-none focus:border-[#881337] transition">
+            <div class="flex items-center gap-2 truncate">
+              <i data-lucide="user" class="w-4 h-4 text-slate-500 shrink-0"></i>
+              <span id="cust-selected-text" class="text-slate-800 font-bold truncate">Mijozni tanlang...</span>
+            </div>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 shrink-0 transition-transform" id="cust-chevron"></i>
+          </button>
+
+          <div id="cust-dropdown-panel" class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl p-2 shadow-2xl z-50 hidden">
+            <div class="relative mb-2">
+              <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400"></i>
+              <input type="text" id="cust-search" oninput="filterCustDropdown()" placeholder="Ism yoki telefon..."
+                     class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#881337] focus:bg-white">
+            </div>
+            <div id="cust-list-container" class="max-h-48 overflow-y-auto space-y-1 pr-1">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="pt-3 border-t border-rose-900/50 flex gap-2">
-        <button onclick="closePaymentModal()" class="w-1/3 py-2.5 rounded-xl bg-[#2a0c16] hover:bg-[#3a101f] text-rose-300 text-xs font-bold border border-rose-900/40">
+      <div class="pt-3 border-t border-slate-200 flex gap-2">
+        <button onclick="closePaymentModal()" class="w-1/3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300 transition cursor-pointer">
           Bekor qilish (Esc)
         </button>
-        <button onclick="completeCheckout()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-white font-black text-sm shadow-xl shadow-rose-950/60 flex items-center justify-center gap-2 border border-rose-500/40">
+        <button onclick="completeCheckout()" class="flex-1 py-2.5 rounded-xl bg-[#059669] hover:bg-[#047857] text-white font-black text-sm shadow-md flex items-center justify-center gap-2 border border-[#059669] active:scale-95 transition cursor-pointer">
           <i data-lucide="printer" class="w-4 h-4"></i> Chek chiqarish (Enter)
         </button>
       </div>
@@ -248,19 +435,19 @@
   </div>
 
   <!-- RECEIPT SUCCESS MODAL -->
-  <div id="receipt-modal" class="fixed inset-0 bg-[#0c0204]/85 backdrop-blur-md hidden items-center justify-center z-50 p-4">
-    <div class="bg-white text-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl font-mono text-xs">
+  <div id="receipt-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white text-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl font-mono text-xs border border-slate-200">
       <div class="flex justify-between items-center pb-2 border-b border-dashed border-slate-300">
-        <span class="font-bold text-rose-900">ORZU POS CHEKI</span>
-        <button onclick="closeReceiptModal()" class="text-slate-500 hover:text-black font-bold">✕</button>
+        <span class="font-bold text-[#881337]" id="receipt-modal-title">ORZU POS CHEKI</span>
+        <button onclick="closeReceiptModal()" class="text-slate-500 hover:text-black font-bold p-1">✕</button>
       </div>
       <pre id="receipt-content" class="py-3 whitespace-pre-wrap leading-relaxed text-slate-800 text-xs font-mono"></pre>
       <div class="pt-3 border-t border-dashed border-slate-300 flex gap-2">
-        <button onclick="window.print()" class="flex-1 py-2.5 bg-rose-900 hover:bg-rose-800 text-white rounded-xl font-bold text-center">
-          Chop etish (Print)
+        <button id="btn-modal-print" onclick="printReceiptFromModal()" class="flex-1 py-2.5 bg-[#881337] hover:bg-[#9f1239] text-white rounded-xl font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all duration-300 active:scale-95 shadow-md">
+          <i data-lucide="printer" class="w-4 h-4"></i> <span>Chop etish (Enter)</span>
         </button>
-        <button onclick="closeReceiptModal()" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl font-bold">
-          Yopish
+        <button onclick="closeReceiptModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold cursor-pointer transition active:scale-95 border border-slate-300">
+          Yopish (Esc)
         </button>
       </div>
     </div>
@@ -268,9 +455,217 @@
 
   <script>
     let allProducts = [];
+    let allCategories = [];
+    let allCustomers = [];
+    let allCashiers = [];
+    let activeCashier = null;
+    let currentLockPin = '';
     let cart = [];
     let currentPaymentMethod = 'cash';
     let currentTotal = 0;
+    let activeCatId = null;
+    let editingCartIdx = null;
+
+    // Organization details from DB
+    let storeSettings = {
+      store_name: "Olmos Orzu market",
+      company_name: "Olmos Orzu Savdo MChJ",
+      store_address: "Namangan viloyati",
+      store_phone: "+998 (90) 123-45-67",
+      director_name: "Rustam Karimov"
+    };
+
+    // ==========================================
+    // KEYBOARD SHORTCUTS & WINDOW EVENTS
+    // ==========================================
+    window.addEventListener('contextmenu', e => { e.preventDefault(); return false; });
+    window.addEventListener('dragstart', e => e.preventDefault());
+    window.addEventListener('drop', e => e.preventDefault());
+
+    // ==========================================
+    // GLOBAL HARDWARE BARCODE SCANNER LISTENER (NO FOCUS NEEDED!)
+    // ==========================================
+    let globalBarcodeBuffer = '';
+    let lastScanKeyTime = 0;
+
+    window.addEventListener('keydown', async e => {
+      if ((e.ctrlKey && (e.key === 'r' || e.key === 'R' || e.key === 'u' || e.key === 'U')) || e.key === 'F5' || e.key === 'F12') {
+        e.preventDefault();
+        return;
+      }
+
+      // Check if Cashier Lock Modal is open
+      const lockModal = document.getElementById('cashier-lock-modal');
+      if (lockModal && !lockModal.classList.contains('hidden')) {
+        if (e.key >= '0' && e.key <= '9') {
+          pressLockPad(e.key);
+        } else if (e.key === 'Backspace') {
+          pressLockPad('backspace');
+        } else if (e.key === 'Enter') {
+          submitUnlockTerminal();
+        }
+        return;
+      }
+
+      // Check if Receipt Modal is open
+      const receiptModal = document.getElementById('receipt-modal');
+      if (receiptModal && !receiptModal.classList.contains('hidden')) {
+        if (e.key === 'Enter') { e.preventDefault(); printReceiptFromModal(); return; }
+        if (e.key === 'Escape') { e.preventDefault(); closeReceiptModal(); return; }
+      }
+
+      // Check if Qty Modal is open
+      const qtyModal = document.getElementById('modal-qty-edit');
+      if (qtyModal && !qtyModal.classList.contains('hidden')) {
+        if (e.key === 'Enter') { e.preventDefault(); confirmQtyEdit(); return; }
+        if (e.key === 'Escape') { e.preventDefault(); closeQtyModal(); return; }
+        return;
+      }
+
+      // Check Payment Modal
+      const payModal = document.getElementById('payment-modal');
+      if (payModal && !payModal.classList.contains('hidden')) {
+        if (e.key === 'Enter') { e.preventDefault(); completeCheckout(); return; }
+        if (e.key === 'Escape') { e.preventDefault(); closePaymentModal(); return; }
+        return;
+      }
+
+      // Function key shortcuts
+      if (e.key === 'F2') { e.preventDefault(); openPaymentModal('cash'); return; }
+      if (e.key === 'F3') { e.preventDefault(); openPaymentModal('card'); return; }
+      if (e.key === 'F4') { e.preventDefault(); openPaymentModal('qr'); return; }
+      if (e.key === 'F5') { e.preventDefault(); openPaymentModal('debt'); return; }
+      if (e.key === 'F11') { e.preventDefault(); toggleFullscreen(); return; }
+      if (e.key === 'Escape') {
+        closePaymentModal();
+        closeReceiptModal();
+        closeQtyModal();
+        return;
+      }
+      if (e.key === 'Delete') {
+        clearCart();
+        return;
+      }
+
+      // HARDWARE SCANNER GLOBAL LISTENER:
+      // If focus is NOT actively in an editable input (like cust-search or cash-input),
+      // accumulate scanner key strokes globally and handle instantly on Enter!
+      const activeEl = document.activeElement;
+      const isOtherInput = activeEl && (activeEl.id === 'cust-search' || activeEl.id === 'cash-input');
+      if (isOtherInput) return;
+
+      const now = Date.now();
+
+      if (e.key === 'Enter') {
+        let code = globalBarcodeBuffer.trim();
+        const bInput = document.getElementById('barcode-input');
+        if (!code && bInput && bInput.value.trim()) {
+          code = bInput.value.trim();
+        }
+
+        if (code && code.length >= 2) {
+          e.preventDefault();
+          globalBarcodeBuffer = '';
+          if (bInput) bInput.value = '';
+          await handleScannedBarcode(code);
+          return;
+        }
+        globalBarcodeBuffer = '';
+        return;
+      }
+
+      if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        // Reset buffer if manual typing gap > 350ms
+        if (now - lastScanKeyTime > 350 && globalBarcodeBuffer.length > 0) {
+          globalBarcodeBuffer = '';
+        }
+        lastScanKeyTime = now;
+        globalBarcodeBuffer += e.key;
+
+        const bInput = document.getElementById('barcode-input');
+        if (bInput && activeEl !== bInput) {
+          bInput.value = globalBarcodeBuffer;
+        }
+      }
+    });
+
+    async function handleScannedBarcode(code) {
+      code = (code || '').trim();
+      if (!code) return;
+
+      // 1. Exact match in local array by barcode or 4-digit code
+      const exact = allProducts.find(p => 
+        p.barcode === code || 
+        (p.short_code && p.short_code === code) ||
+        p.name.toLowerCase() === code.toLowerCase()
+      );
+
+      if (exact) {
+        addToCart(exact);
+        showToast(`"${exact.name}" savatga qo'shildi!`, "success");
+        const bInput = document.getElementById('barcode-input');
+        if (bInput) bInput.value = '';
+        applyProductFilter();
+        refocusBarcodeInput();
+        return;
+      }
+
+      // 2. Fetch from server API
+      try {
+        const res = await fetch('/api/products/barcode/' + encodeURIComponent(code));
+        if (res.ok) {
+          const product = await res.json();
+          addToCart(product);
+          showToast(`"${product.name}" savatga qo'shildi!`, "success");
+          const bInput = document.getElementById('barcode-input');
+          if (bInput) bInput.value = '';
+          applyProductFilter();
+          refocusBarcodeInput();
+        } else {
+          showToast(`Shtrix-kod topilmadi: ${code}`, "error");
+          const bInput = document.getElementById('barcode-input');
+          if (bInput) {
+            bInput.classList.add('border-red-500');
+            setTimeout(() => bInput.classList.remove('border-red-500'), 1000);
+          }
+        }
+      } catch (err) {
+        console.error("Barcode scan error:", err);
+      }
+    }
+
+    function refocusBarcodeInput() {
+      setTimeout(() => {
+        const modalOpen = document.querySelector('#modal-qty-edit:not(.hidden), #cashier-lock-modal:not(.hidden), #payment-modal:not(.hidden), #receipt-modal:not(.hidden)');
+        if (!modalOpen) {
+          const bInput = document.getElementById('barcode-input');
+          if (bInput && document.activeElement !== bInput) {
+            bInput.focus();
+          }
+        }
+      }, 60);
+    }
+
+    // Auto refocus barcode-input on clicking empty spaces
+    document.addEventListener('click', e => {
+      const btn = document.getElementById('cust-dropdown-btn');
+      const panel = document.getElementById('cust-dropdown-panel');
+      if (btn && panel && !btn.contains(e.target) && !panel.contains(e.target)) {
+        panel.classList.add('hidden');
+        document.getElementById('cust-chevron')?.classList.remove('rotate-180');
+      }
+
+      const lockBtn = document.getElementById('lock-cashier-btn');
+      const lockPanel = document.getElementById('lock-cashier-dropdown-panel');
+      if (lockBtn && lockPanel && !lockBtn.contains(e.target) && !lockPanel.contains(e.target)) {
+        lockPanel.classList.add('hidden');
+        document.getElementById('lock-cashier-chevron')?.classList.remove('rotate-180');
+      }
+
+      if (!e.target.closest('button, input, select, textarea, [onclick]')) {
+        refocusBarcodeInput();
+      }
+    });
 
     // Clock
     setInterval(() => {
@@ -278,7 +673,6 @@
       document.getElementById('clock-display').innerText = now.toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
     }, 1000);
 
-    // Fullscreen Toggle
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => {});
@@ -287,36 +681,325 @@
       }
     }
 
-    // Initial load
+    // ==========================================
+    // INITIALIZATION & CASHIER LOGIN
+    // ==========================================
     async function init() {
+      await loadSettings();
+      await loadCashiers();
+      checkLicense();
+      checkSystemUpdates();
+      setInterval(checkSystemUpdates, 30000);
       await loadCategories();
       await loadProducts();
       await loadCustomers();
+      setupBarcodeInput();
+
+      // Show lock terminal screen on launch if no cashier logged in
+      const savedCashier = sessionStorage.getItem('orzu_active_cashier');
+      if (savedCashier) {
+        try {
+          activeCashier = JSON.parse(savedCashier);
+          applyActiveCashier();
+        } catch(e) {
+          lockTerminal();
+        }
+      } else {
+        lockTerminal();
+      }
+
       lucide.createIcons();
     }
 
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const s = await res.json();
+          Object.assign(storeSettings, s);
+          if (storeSettings.store_name) {
+            document.getElementById('store-title-header').innerText = storeSettings.store_name;
+          }
+        }
+      } catch (e) {
+        console.error("Settings load error:", e);
+      }
+    }
+
+    async function loadCashiers() {
+      try {
+        const res = await fetch('/api/cashiers');
+        if (res.ok) {
+          allCashiers = await res.json();
+          renderLockCashierDropdown();
+        }
+      } catch (e) {
+        console.error("Cashiers load error:", e);
+      }
+    }
+
+    function renderLockCashierDropdown() {
+      const select = document.getElementById('lock-cashier-select');
+      const panel = document.getElementById('lock-cashier-dropdown-panel');
+      if (!select || !panel) return;
+      
+      select.innerHTML = '';
+      panel.innerHTML = '';
+
+      if (allCashiers.length === 0) {
+        allCashiers = [{ id: 1, full_name: "Kassir 1", pin: "1234", role: "cashier", is_active: true }];
+      }
+
+      const activeList = allCashiers.filter(c => c.is_active);
+
+      activeList.forEach((c, idx) => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.innerText = c.full_name;
+        select.appendChild(opt);
+
+        const item = document.createElement('div');
+        item.className = 'flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-100 cursor-pointer transition text-left';
+        item.onclick = () => selectLockCashier(c);
+        item.innerHTML = `
+          <div class="w-7 h-7 rounded-lg bg-[#881337] flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-sm">
+            ${c.full_name ? c.full_name[0].toUpperCase() : 'K'}
+          </div>
+          <div class="min-w-0">
+            <p class="font-bold text-xs text-slate-900 truncate">${c.full_name}</p>
+            <p class="text-[10px] text-slate-500 truncate">${c.role || 'Kassir'} ${c.phone ? '• ' + c.phone : ''}</p>
+          </div>
+        `;
+        panel.appendChild(item);
+      });
+
+      if (activeList.length > 0) {
+        selectLockCashier(activeList[0]);
+      }
+    }
+
+    function toggleCashierDropdown(e) {
+      if (e) e.stopPropagation();
+      const panel = document.getElementById('lock-cashier-dropdown-panel');
+      const chevron = document.getElementById('lock-cashier-chevron');
+      if (panel) {
+        panel.classList.toggle('hidden');
+        if (chevron) chevron.classList.toggle('rotate-180');
+      }
+    }
+
+    function selectLockCashier(cashier) {
+      const select = document.getElementById('lock-cashier-select');
+      if (select) select.value = cashier.id;
+
+      const nameEl = document.getElementById('lock-cashier-display-name');
+      const subEl = document.getElementById('lock-cashier-display-sub');
+      const badgeEl = document.getElementById('lock-cashier-badge');
+
+      if (nameEl) nameEl.innerText = cashier.full_name;
+      if (subEl) subEl.innerText = (cashier.role || 'Kassir') + (cashier.phone ? ' • ' + cashier.phone : '');
+      if (badgeEl) badgeEl.innerText = cashier.full_name ? cashier.full_name[0].toUpperCase() : 'K';
+
+      const panel = document.getElementById('lock-cashier-dropdown-panel');
+      const chevron = document.getElementById('lock-cashier-chevron');
+      if (panel && !panel.classList.contains('hidden')) {
+        panel.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+      }
+
+      currentLockPin = '';
+      updateLockPinDisplay();
+      document.getElementById('lock-error-msg')?.classList.add('hidden');
+    }
+
+    function onLockCashierChange() {
+      const select = document.getElementById('lock-cashier-select');
+      const c = allCashiers.find(item => item.id == select.value);
+      if (c) selectLockCashier(c);
+    }
+
+    function toggleLockPinVisibility() {
+      const input = document.getElementById('lock-pin-display');
+      const icon = document.getElementById('lock-pin-eye-icon');
+      const iconBtn = document.getElementById('lock-pin-eye-icon-btn');
+      const txt = document.getElementById('lock-pin-eye-text');
+      if (!input) return;
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) icon.setAttribute('data-lucide', 'eye-off');
+        if (iconBtn) iconBtn.setAttribute('data-lucide', 'eye-off');
+        if (txt) txt.innerText = "Yashirish";
+      } else {
+        input.type = 'password';
+        if (icon) icon.setAttribute('data-lucide', 'eye');
+        if (iconBtn) iconBtn.setAttribute('data-lucide', 'eye');
+        if (txt) txt.innerText = "Ko'rish";
+      }
+      lucide.createIcons();
+    }
+
+    function lockTerminal() {
+      currentLockPin = '';
+      updateLockPinDisplay();
+      document.getElementById('lock-error-msg')?.classList.add('hidden');
+      const modal = document.getElementById('cashier-lock-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function pressLockPad(val) {
+      if (val === 'clear') {
+        currentLockPin = '';
+      } else if (val === 'backspace') {
+        currentLockPin = currentLockPin.slice(0, -1);
+      } else if (typeof val === 'string' && val.length === 1 && currentLockPin.length < 8) {
+        currentLockPin += val;
+      }
+      updateLockPinDisplay();
+      document.getElementById('lock-error-msg')?.classList.add('hidden');
+    }
+
+    function updateLockPinDisplay() {
+      const disp = document.getElementById('lock-pin-display');
+      if (disp) {
+        disp.value = currentLockPin;
+      }
+    }
+
+    async function submitUnlockTerminal() {
+      const select = document.getElementById('lock-cashier-select');
+      const cashierId = parseInt(select.value);
+      const cashier = allCashiers.find(c => c.id === cashierId);
+
+      if (!cashier) {
+        showToast("Kassir tanlanmadi", "error");
+        return;
+      }
+
+      // Check PIN code
+      if (cashier.pin && cashier.pin !== currentLockPin) {
+        const err = document.getElementById('lock-error-msg');
+        err.classList.remove('hidden');
+        err.innerText = "PIN kod noto'g'ri! Qayta kiriting.";
+        currentLockPin = '';
+        updateLockPinDisplay();
+        return;
+      }
+
+      activeCashier = cashier;
+      sessionStorage.setItem('orzu_active_cashier', JSON.stringify(cashier));
+      applyActiveCashier();
+
+      const modal = document.getElementById('cashier-lock-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      showToast(`Xush kelibsiz, ${cashier.full_name}!`, "success");
+      refocusBarcodeInput();
+    }
+
+    function applyActiveCashier() {
+      if (!activeCashier) return;
+      document.getElementById('cashier-name').innerText = activeCashier.full_name;
+      const initials = activeCashier.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      document.getElementById('cashier-avatar').innerText = initials || 'K1';
+    }
+
+    async function checkSystemUpdates() {
+      try {
+        const res = await fetch('/api/updates/check');
+        if (!res.ok) return;
+        const data = await res.json();
+        const badge = document.getElementById('kassa-update-badge');
+        if (!badge) return;
+
+        if (data.online && data.has_update) {
+          badge.innerHTML = `
+            <a href="http://localhost:8899" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-black shadow-md border border-amber-400 transition animate-pulse" title="GitHub'da yangi versiya mavjud! O'rnatuvchi orqali yangilang">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-white"></i>
+              <span>Yangi versiya: v${data.latest_version || ''}</span>
+            </a>
+          `;
+          badge.classList.remove('hidden');
+          lucide.createIcons();
+        } else {
+          badge.classList.add('hidden');
+        }
+      } catch (e) {}
+    }
+
+    function showToast(msg, type = 'info') {
+      let toast = document.getElementById('app-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'app-toast';
+        document.body.appendChild(toast);
+      }
+      toast.className = `fixed bottom-24 right-6 z-[9999] px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold transition-all duration-200 transform ${
+        type === 'error' ? 'bg-red-700 text-white border border-red-800' : 'bg-slate-900 text-white border border-slate-700'
+      }`;
+      toast.innerHTML = `<i data-lucide="${type === 'error' ? 'alert-triangle' : 'check-circle'}" class="w-4 h-4 ${type === 'error' ? 'text-red-200' : 'text-emerald-400'}"></i> <span>${msg}</span>`;
+      lucide.createIcons();
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => {
+        toast.className = 'hidden';
+      }, 3200);
+    }
+
+    async function checkLicense() {
+      try {
+        const res = await fetch('/api/license');
+        if (res.ok) {
+          const lic = await res.json();
+          if (lic.is_expired) {
+            showToast("Diqqat: 30 kunlik sinov muddati tugagan! Aktivatsiya kaliti talab etiladi.", "error");
+          }
+        }
+      } catch (e) {}
+    }
+
+    // ==========================================
+    // CATEGORIES (ONLY NON-EMPTY CATEGORIES DISPLAYED!)
+    // ==========================================
     async function loadCategories() {
       try {
         const res = await fetch('/api/categories');
         const cats = await res.json();
+        allCategories = cats.filter(c => (c.product_count || 0) > 0);
+
         const container = document.getElementById('categories-container');
-        cats.forEach(c => {
+        container.innerHTML = `
+          <button class="cat-tab px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap bg-[#881337] text-white shadow-sm border border-[#881337] flex items-center gap-1.5 cursor-pointer" onclick="filterCategory(null, this)">
+            <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Barcha tovarlar
+          </button>
+        `;
+        allCategories.forEach(c => {
           const btn = document.createElement('button');
-          btn.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-[#220a14] hover:bg-[#300d1c] text-rose-200/80 border border-rose-950/60 transition';
-          btn.innerText = c.name;
+          btn.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition flex items-center gap-1.5 cursor-pointer';
+          btn.innerHTML = `<i data-lucide="${c.icon || 'tag'}" class="w-3.5 h-3.5 text-[#881337]"></i> ${c.name} (${c.product_count})`;
           btn.onclick = () => filterCategory(c.id, btn);
           container.appendChild(btn);
         });
+        lucide.createIcons();
       } catch (err) {
         console.error(err);
       }
     }
 
-    async function loadProducts(catId = null) {
+    function filterCategory(catId, btn) {
+      activeCatId = catId;
+      document.querySelectorAll('.cat-tab').forEach(b => {
+        b.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm transition flex items-center gap-1.5 cursor-pointer';
+      });
+      btn.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap bg-[#881337] text-white shadow-sm border border-[#881337] flex items-center gap-1.5 cursor-pointer';
+      applyProductFilter();
+      refocusBarcodeInput();
+    }
+
+    async function loadProducts() {
       try {
-        let url = '/api/products';
-        if (catId) url += '?category_id=' + catId;
-        const res = await fetch(url);
+        const res = await fetch('/api/products');
         allProducts = await res.json();
         renderProducts(allProducts);
       } catch (err) {
@@ -324,40 +1007,80 @@
       }
     }
 
-    async function loadCustomers() {
-      try {
-        const res = await fetch('/api/customers');
-        const custs = await res.json();
-        const sel = document.getElementById('customer-select');
-        sel.innerHTML = '';
-        custs.forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c.id;
-          opt.innerText = `${c.full_name} (${c.phone || 'Tel yoq'}) - Qarz: ${c.debt_balance.toLocaleString()} so'm`;
-          sel.appendChild(opt);
-        });
-      } catch (err) {}
+    function applyProductFilter() {
+      const q = document.getElementById('barcode-input').value.toLowerCase().trim();
+      let filtered = allProducts;
+      if (activeCatId) {
+        filtered = filtered.filter(p => p.category_id == activeCatId);
+      }
+      if (q) {
+        filtered = filtered.filter(p => 
+          p.name.toLowerCase().includes(q) || 
+          p.barcode.toLowerCase().includes(q) || 
+          (p.short_code && p.short_code.includes(q)) ||
+          (p.location && p.location.toLowerCase().includes(q))
+        );
+      }
+      renderProducts(filtered);
     }
 
-    // Product Cards: Large, clear, touch-friendly, high contrast
+    function formatQty(n) {
+      const val = parseFloat(n) || 0;
+      return Number(val.toFixed(3)).toString();
+    }
+
+    // ==========================================
+    // PRODUCT CARDS (HIGH CONTRAST DAYLIGHT POS)
+    // ==========================================
     function renderProducts(products) {
       const grid = document.getElementById('products-grid');
       grid.innerHTML = '';
+      if (products.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full h-48 flex flex-col items-center justify-center text-slate-400 space-y-2">
+            <i data-lucide="package-search" class="w-10 h-10 opacity-50"></i>
+            <p class="text-xs font-semibold">Bu toifada tovarlar topilmadi</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
       products.forEach(p => {
         const card = document.createElement('div');
-        card.className = 'glass-card p-4 rounded-2xl flex flex-col justify-between hover:border-rose-500 hover:bg-[#2c0c19] cursor-pointer active:scale-95 transition shadow-md group';
-        card.onclick = () => addToCart(p);
+        card.className = 'bg-white p-3 rounded-2xl flex flex-col justify-between hover:border-[#881337] hover:shadow-md cursor-pointer active:scale-95 transition shadow-sm border border-slate-200 group h-44';
+        card.onclick = () => {
+          addToCart(p);
+          refocusBarcodeInput();
+        };
+
+        const imgHtml = p.image_url 
+          ? `<img src="${p.image_url}" alt="${p.name}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0">` 
+          : `<div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0"><i data-lucide="package" class="w-5 h-5"></i></div>`;
+
         card.innerHTML = `
           <div>
-            <div class="flex justify-between items-start">
-              <span class="text-[10px] font-mono font-bold text-rose-300 bg-rose-950/90 px-2 py-0.5 rounded-lg border border-rose-900/50">${p.barcode}</span>
-              <span class="text-[11px] text-emerald-400 font-bold">${p.stock_quantity} ${p.unit}</span>
+            <div class="flex justify-between items-start gap-1">
+              <div class="flex items-center gap-1 overflow-hidden">
+                <span class="text-[10px] font-mono font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 truncate max-w-[90px]">${p.barcode}</span>
+                ${p.short_code ? `<span class="text-[10px] font-mono font-bold text-amber-900 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">#${p.short_code}</span>` : ''}
+              </div>
+              <span class="text-[11px] font-mono font-bold ${p.stock_quantity <= 3 ? 'text-amber-600' : 'text-emerald-700'} whitespace-nowrap">${formatQty(p.stock_quantity)} ${p.unit}</span>
             </div>
-            <h4 class="font-extrabold text-sm text-white line-clamp-2 leading-snug my-2.5 group-hover:text-rose-100">${p.name}</h4>
+            <div class="flex items-center gap-2 my-2">
+              ${imgHtml}
+              <h4 class="font-extrabold text-xs text-slate-900 line-clamp-2 leading-snug group-hover:text-[#881337] flex-1">${p.name}</h4>
+            </div>
+            ${p.location ? `
+              <div class="flex items-center gap-1 text-[10px] font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 w-max mb-1">
+                <i data-lucide="map-pin" class="w-3 h-3 text-amber-600 shrink-0"></i>
+                <span class="truncate max-w-[130px]">${p.location}</span>
+              </div>
+            ` : ''}
           </div>
-          <div class="mt-2 flex justify-between items-center pt-2.5 border-t border-rose-900/40">
-            <span class="font-black text-base text-amber-300 font-mono">${p.sell_price.toLocaleString()} <span class="text-xs font-normal text-rose-300/70">so'm</span></span>
-            <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-rose-900 to-rose-700 group-hover:from-rose-800 group-hover:to-rose-600 text-white flex items-center justify-center font-black text-sm border border-rose-500/40 shadow-sm">+</div>
+          <div class="mt-1 flex justify-between items-center pt-2 border-t border-slate-100">
+            <span class="font-black text-sm text-[#881337] font-mono">${p.sell_price.toLocaleString()} <span class="text-[10px] font-normal text-slate-500">so'm</span></span>
+            <div class="w-7 h-7 rounded-xl bg-[#881337] group-hover:bg-[#9f1239] text-white flex items-center justify-center font-black text-sm shadow-sm">+</div>
           </div>
         `;
         grid.appendChild(card);
@@ -365,122 +1088,190 @@
       lucide.createIcons();
     }
 
-    function filterCategory(catId, btn) {
-      document.querySelectorAll('.cat-tab').forEach(b => {
-        b.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-[#220a14] hover:bg-[#300d1c] text-rose-200/80 border border-rose-950/60 transition';
-      });
-      btn.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap bg-gradient-to-r from-rose-800 to-rose-700 text-white shadow-lg border border-rose-500/40';
-      loadProducts(catId);
-    }
+    // ==========================================
+    // CART & STRICT STOCK CONTROL
+    // ==========================================
+    function addToCart(product, qtyToAdd = 1) {
+      const idx = cart.findIndex(item => item.product.id === product.id);
+      const currentQty = idx > -1 ? cart[idx].quantity : 0;
+      const targetQty = currentQty + qtyToAdd;
 
-    // Barcode Scanner Listener
-    document.getElementById('barcode-input').addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter') {
-        const val = e.target.value.trim();
-        if (!val) return;
-        try {
-          const res = await fetch('/api/products/barcode/' + encodeURIComponent(val));
-          if (res.ok) {
-            const p = await res.json();
-            addToCart(p);
-            e.target.value = '';
-          } else {
-            alert("Mahsulot topilmadi: " + val);
-          }
-        } catch (err) {
-          console.error(err);
-        }
+      if (targetQty > product.stock_quantity) {
+        showToast(`Omborda bu tovardan faqat ${formatQty(product.stock_quantity)} ${product.unit} mavjud! Undan ortiq qo'shib bo'lmaydi.`, "error");
+        return;
       }
-    });
 
-    function addToCart(product) {
-      const existing = cart.find(item => item.product.id === product.id);
-      if (existing) {
-        existing.quantity += 1;
+      if (idx > -1) {
+        cart[idx].quantity = parseFloat((currentQty + qtyToAdd).toFixed(3));
       } else {
         cart.push({
           product: product,
-          quantity: 1,
-          discount: 0
+          quantity: parseFloat(qtyToAdd.toFixed(3)),
+          price: product.sell_price
         });
       }
+
       renderCart();
     }
 
-    function updateQty(index, delta) {
-      cart[index].quantity += delta;
-      if (cart[index].quantity <= 0) {
-        cart.splice(index, 1);
+    function incrementCartItem(idx) {
+      if (!cart[idx]) return;
+      const item = cart[idx];
+      const step = (item.product.unit === 'kg' || item.product.unit === 'litr' || item.product.unit === 'metr') ? 0.5 : 1;
+
+      if (item.quantity + step > item.product.stock_quantity) {
+        showToast(`Omborda bor-yo'g'i ${formatQty(item.product.stock_quantity)} ${item.product.unit} mavjud! Qarzga yoki minusga o'tish taqiqlangan.`, "error");
+        return;
       }
+
+      item.quantity = parseFloat((item.quantity + step).toFixed(3));
       renderCart();
+      refocusBarcodeInput();
     }
 
-    function removeItem(index) {
-      cart.splice(index, 1);
+    function decrementCartItem(idx) {
+      if (!cart[idx]) return;
+      const item = cart[idx];
+      const step = (item.product.unit === 'kg' || item.product.unit === 'litr' || item.product.unit === 'metr') ? 0.5 : 1;
+      const newQty = item.quantity - step;
+
+      if (newQty <= 0) {
+        removeCartItem(idx);
+      } else {
+        item.quantity = parseFloat(newQty.toFixed(3));
+        renderCart();
+      }
+      refocusBarcodeInput();
+    }
+
+    function removeCartItem(idx) {
+      cart.splice(idx, 1);
       renderCart();
+      refocusBarcodeInput();
     }
 
     function clearCart() {
       if (cart.length === 0) return;
-      if (confirm("Xarid chekini tozalashni tasdiqlaysizmi?")) {
-        cart = [];
-        renderCart();
+      cart = [];
+      renderCart();
+      showToast("Xarid cheki tozalandi", "info");
+      refocusBarcodeInput();
+    }
+
+    function openQtyModal(idx) {
+      if (!cart[idx]) return;
+      editingCartIdx = idx;
+      const item = cart[idx];
+
+      document.getElementById('qty-modal-prod-name').innerText = item.product.name;
+      document.getElementById('qty-modal-stock-hint').innerText = `Mavjud qoldiq: ${formatQty(item.product.stock_quantity)} ${item.product.unit}`;
+      document.getElementById('qty-edit-input').value = formatQty(item.quantity);
+
+      const modal = document.getElementById('modal-qty-edit');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+      setTimeout(() => document.getElementById('qty-edit-input').focus(), 80);
+    }
+
+    function closeQtyModal() {
+      const modal = document.getElementById('modal-qty-edit');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      editingCartIdx = null;
+      refocusBarcodeInput();
+    }
+
+    function pressQtyPad(val) {
+      const input = document.getElementById('qty-edit-input');
+      let curr = input.value;
+      if (val === 'backspace') {
+        input.value = curr.slice(0, -1);
+      } else if (val === '.') {
+        if (!curr.includes('.')) input.value = (curr || '0') + '.';
+      } else {
+        input.value = curr + val;
       }
     }
 
-    // Render Cart Table
+    function addQtyPreset(preset) {
+      const input = document.getElementById('qty-edit-input');
+      const cur = parseFloat(input.value) || 0;
+      input.value = parseFloat((cur + preset).toFixed(3));
+    }
+
+    function confirmQtyEdit() {
+      if (editingCartIdx === null || !cart[editingCartIdx]) return;
+      const item = cart[editingCartIdx];
+      const val = parseFloat(document.getElementById('qty-edit-input').value);
+
+      if (isNaN(val) || val <= 0) {
+        showToast("Noto'g'ri miqdor kiritildi!", "error");
+        return;
+      }
+
+      if (val > item.product.stock_quantity) {
+        showToast(`Omborda faqat ${formatQty(item.product.stock_quantity)} ${item.product.unit} qolgan! Undan ortiq kirita olmaysiz.`, "error");
+        return;
+      }
+
+      item.quantity = parseFloat(val.toFixed(3));
+      closeQtyModal();
+      renderCart();
+    }
+
     function renderCart() {
       const container = document.getElementById('cart-items');
-      const itemCountBadge = document.getElementById('cart-item-count');
-      const bottomQty = document.getElementById('bottom-qty-display');
-      const totalDisp = document.getElementById('total-display');
-
-      let subtotal = 0;
-      let totalQty = 0;
+      container.innerHTML = '';
 
       if (cart.length === 0) {
         container.innerHTML = `
-          <div class="h-full flex flex-col items-center justify-center text-rose-300/40 space-y-3">
-            <i data-lucide="shopping-bag" class="w-16 h-16 text-rose-900/40"></i>
-            <p class="text-sm font-bold text-rose-200/80">Xarid cheki bo'sh</p>
-            <p class="text-xs text-rose-400/60 text-center max-w-xs">
-              Shtrix-kodni skanerlang yoki o'ng tomondagi tovar kartasini bosing.
+          <div class="h-full flex flex-col items-center justify-center text-slate-400 space-y-3">
+            <i data-lucide="shopping-bag" class="w-16 h-16 text-slate-300"></i>
+            <p class="text-sm font-bold text-slate-700">Xarid cheki bo'sh</p>
+            <p class="text-xs text-slate-500 text-center max-w-xs">
+              Shtrix-kodni skanerlang yoki chap tomondagi tovar kartasini bosing.
             </p>
           </div>
         `;
-        itemCountBadge.innerText = '0 tovar';
-        bottomQty.innerText = '0 dona';
-        totalDisp.innerText = '0 SO\'M';
         currentTotal = 0;
+        updateTotals();
         lucide.createIcons();
         return;
       }
 
-      container.innerHTML = '';
+      let total = 0;
+      let totalQty = 0;
+
       cart.forEach((item, idx) => {
-        const itemTotal = item.product.sell_price * item.quantity;
-        subtotal += itemTotal;
+        const itemTotal = item.quantity * item.price;
+        total += itemTotal;
         totalQty += item.quantity;
 
         const row = document.createElement('div');
-        row.className = 'px-3 py-2.5 rounded-xl bg-[#220a13] border border-rose-900/50 grid grid-cols-12 items-center text-xs shadow-sm hover:border-rose-500/50 transition';
+        row.className = 'grid grid-cols-12 items-center p-2.5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-[#881337]/50 hover:bg-slate-100/70 transition';
         row.innerHTML = `
-          <span class="col-span-1 text-center font-bold text-rose-400/80 text-xs">${idx + 1}</span>
+          <span class="col-span-1 text-center font-mono text-xs text-slate-500 font-bold">${idx + 1}</span>
           <div class="col-span-5 pr-2">
-            <p class="font-black text-white text-xs line-clamp-1">${item.product.name}</p>
-            <p class="text-[10px] font-mono text-rose-400/80">${item.product.barcode}</p>
+            <p class="font-bold text-xs text-slate-900 truncate">${item.product.name}</p>
+            <div class="flex items-center gap-2 text-[10px] text-slate-500 font-mono mt-0.5">
+              <span>${item.price.toLocaleString()} so'm</span>
+              ${item.product.location ? `<span class="text-amber-800 bg-amber-50 px-1 rounded font-bold">${item.product.location}</span>` : ''}
+            </div>
           </div>
-          <div class="col-span-2 text-right font-bold text-rose-200">
-            ${item.product.sell_price.toLocaleString()}
+          <div class="col-span-2 text-right font-mono text-xs font-bold text-slate-700">
+            ${item.price.toLocaleString()}
           </div>
           <div class="col-span-2 flex items-center justify-center gap-1">
-            <button onclick="updateQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-[#2e0e1a] hover:bg-[#431426] text-white flex items-center justify-center font-black border border-rose-900/40">-</button>
-            <span class="w-6 text-center font-black text-white text-xs">${item.quantity}</span>
-            <button onclick="updateQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-[#2e0e1a] hover:bg-[#431426] text-white flex items-center justify-center font-black border border-rose-900/40">+</button>
+            <button onclick="decrementCartItem(${idx})" class="w-6 h-6 rounded-lg bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 flex items-center justify-center text-xs font-bold cursor-pointer transition shadow-sm">-</button>
+            <span onclick="openQtyModal(${idx})" class="font-mono font-bold text-xs px-2 py-0.5 rounded-lg bg-white border border-slate-300 text-slate-900 cursor-pointer shadow-sm hover:border-[#881337]" title="Miqdorni tahrirlash">
+              ${formatQty(item.quantity)}
+            </span>
+            <button onclick="incrementCartItem(${idx})" class="w-6 h-6 rounded-lg bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 flex items-center justify-center text-xs font-bold cursor-pointer transition shadow-sm">+</button>
           </div>
           <div class="col-span-2 flex items-center justify-end gap-1.5 pr-1">
-            <span class="font-black text-amber-300 font-mono text-xs">${itemTotal.toLocaleString()}</span>
-            <button onclick="removeItem(${idx})" class="text-rose-500 hover:text-rose-300 p-0.5">
+            <span class="font-mono font-extrabold text-xs text-[#881337]">${itemTotal.toLocaleString()}</span>
+            <button onclick="removeCartItem(${idx})" class="text-slate-400 hover:text-red-600 p-1 rounded transition cursor-pointer">
               <i data-lucide="x" class="w-3.5 h-3.5"></i>
             </button>
           </div>
@@ -488,165 +1279,471 @@
         container.appendChild(row);
       });
 
-      currentTotal = subtotal;
-      itemCountBadge.innerText = `${cart.length} xil (${totalQty} dona)`;
-      bottomQty.innerText = `${totalQty} dona`;
-      totalDisp.innerText = subtotal.toLocaleString() + ' SO\'M';
+      currentTotal = total;
+      updateTotals(totalQty);
       lucide.createIcons();
     }
 
-    // Keyboard Shortcuts (F2-F5, F11, Esc, Del)
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'F2') { e.preventDefault(); openPaymentModal('cash'); }
-      if (e.key === 'F3') { e.preventDefault(); openPaymentModal('card'); }
-      if (e.key === 'F4') { e.preventDefault(); openPaymentModal('qr'); }
-      if (e.key === 'F5') { e.preventDefault(); openPaymentModal('debt'); }
-      if (e.key === 'Delete') { e.preventDefault(); clearCart(); }
-      if (e.key === 'Escape') { closePaymentModal(); closeReceiptModal(); }
-    });
+    function updateTotals(qty = 0) {
+      document.getElementById('total-display').innerText = currentTotal.toLocaleString() + " SO'M";
+      document.getElementById('bottom-qty-display').innerText = formatQty(qty);
+      document.getElementById('cart-item-count').innerText = cart.length + " tovar";
+    }
 
-    function openPaymentModal(method) {
-      if (cart.length === 0) {
-        alert("Xarid cheki bo'sh! Avval tovar qo'shing.");
+    // ==========================================
+    // BARCODE INPUT SEARCH (ALSO SUPPORTS DIRECT TYPING)
+    // ==========================================
+    function setupBarcodeInput() {
+      const input = document.getElementById('barcode-input');
+      input.addEventListener('input', () => {
+        applyProductFilter();
+      });
+
+      input.addEventListener('keydown', async (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const code = input.value.trim();
+          if (!code) return;
+          input.value = '';
+          await handleScannedBarcode(code);
+        }
+      });
+    }
+
+    // ==========================================
+    // CUSTOMER CUSTOM DROPDOWN
+    // ==========================================
+    async function loadCustomers() {
+      try {
+        const res = await fetch('/api/customers');
+        allCustomers = await res.json();
+        renderCustDropdown(allCustomers);
+        if (allCustomers.length > 0) {
+          selectCustomer(allCustomers[0].id, allCustomers[0].full_name, allCustomers[0].debt_balance);
+        }
+      } catch (err) {}
+    }
+
+    function renderCustDropdown(custs) {
+      const container = document.getElementById('cust-list-container');
+      if (!container) return;
+      container.innerHTML = '';
+      if (custs.length === 0) {
+        container.innerHTML = `<div class="p-3 text-center text-slate-400 text-xs">Mijozlar topilmadi</div>`;
         return;
       }
-      currentPaymentMethod = method;
-      const modal = document.getElementById('payment-modal');
-      const title = document.getElementById('modal-title');
-      const amount = document.getElementById('modal-amount');
-      const cashSec = document.getElementById('cash-section');
-      const custSec = document.getElementById('customer-section');
+      custs.forEach(c => {
+        const div = document.createElement('div');
+        div.className = "p-2.5 rounded-xl hover:bg-slate-100 cursor-pointer flex items-center justify-between text-xs text-slate-800 transition";
+        div.onclick = () => selectCustomer(c.id, c.full_name, c.debt_balance);
+        div.innerHTML = `
+          <div>
+            <p class="font-bold text-slate-900">${c.full_name}</p>
+            <p class="text-[11px] text-slate-500 font-mono">${c.phone || 'Tel yoq'}</p>
+          </div>
+          <span class="font-mono text-[11px] font-bold ${c.debt_balance > 0 ? 'text-amber-700' : 'text-emerald-700'}">
+            ${c.debt_balance.toLocaleString()} so'm
+          </span>
+        `;
+        container.appendChild(div);
+      });
+    }
 
-      amount.innerText = currentTotal.toLocaleString() + ' so\'m';
-      document.getElementById('cash-received').value = '';
-      document.getElementById('change-display').innerText = '0 so\'m';
+    function toggleCustDropdown() {
+      const panel = document.getElementById('cust-dropdown-panel');
+      const chevron = document.getElementById('cust-chevron');
+      panel.classList.toggle('hidden');
+      chevron.classList.toggle('rotate-180');
+      if (!panel.classList.contains('hidden')) {
+        document.getElementById('cust-search').focus();
+      }
+    }
 
-      if (method === 'cash') {
-        title.innerHTML = '<i data-lucide="banknote" class="w-5 h-5 text-emerald-400"></i> Naqd Pul bilan to\'lov';
-        cashSec.classList.remove('hidden');
-        custSec.classList.add('hidden');
-        setTimeout(() => document.getElementById('cash-received').focus(), 100);
-      } else if (method === 'card') {
-        title.innerHTML = '<i data-lucide="credit-card" class="w-5 h-5 text-rose-400"></i> Plastik Karta (Terminal) orqali';
-        cashSec.classList.add('hidden');
-        custSec.classList.add('hidden');
-      } else if (method === 'qr') {
-        title.innerHTML = '<i data-lucide="qr-code" class="w-5 h-5 text-purple-400"></i> Click / Payme / Uzum Pay';
-        cashSec.classList.add('hidden');
-        custSec.classList.add('hidden');
-      } else if (method === 'debt') {
-        title.innerHTML = '<i data-lucide="book-open" class="w-5 h-5 text-amber-400"></i> Nasiya (Qarz) daftari';
-        cashSec.classList.add('hidden');
-        custSec.classList.remove('hidden');
+    function filterCustDropdown() {
+      const q = document.getElementById('cust-search').value.toLowerCase();
+      const filtered = allCustomers.filter(c => (c.full_name && c.full_name.toLowerCase().includes(q)) || (c.phone && c.phone.includes(q)));
+      renderCustDropdown(filtered);
+    }
+
+    function selectCustomer(id, name, debt) {
+      document.getElementById('customer-select-val').value = id;
+      document.getElementById('cust-selected-text').innerText = `${name} (Qarz: ${debt.toLocaleString()} so'm)`;
+      const panel = document.getElementById('cust-dropdown-panel');
+      if (panel && !panel.classList.contains('hidden')) {
+        toggleCustDropdown();
+      }
+    }
+
+    // ==========================================
+    // CHECKOUT & PAYMENT MODAL
+    // ==========================================
+    function openPaymentModal(method) {
+      if (cart.length === 0) {
+        showToast("Xarid cheki bo'sh! Avval tovarlarni tanlang.", "error");
+        return;
       }
 
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      currentPaymentMethod = method;
+      document.getElementById('modal-amount-display').innerText = currentTotal.toLocaleString() + " so'm";
+
+      const cashSec = document.getElementById('cash-section');
+      const custSec = document.getElementById('customer-section');
+      const modalTitle = document.getElementById('modal-title');
+
+      if (method === 'cash') {
+        modalTitle.innerHTML = '<i data-lucide="banknote" class="w-5 h-5 text-emerald-600"></i> Naqd to\'lov';
+        cashSec.classList.remove('hidden');
+        custSec.classList.add('hidden');
+        document.getElementById('cash-input').value = currentTotal;
+        calculateChange();
+        setTimeout(() => document.getElementById('cash-input').focus(), 100);
+      } else if (method === 'debt') {
+        modalTitle.innerHTML = '<i data-lucide="book-open" class="w-5 h-5 text-amber-600"></i> Nasiya (Qarzga sotish)';
+        cashSec.classList.add('hidden');
+        custSec.classList.remove('hidden');
+      } else {
+        const titleText = method === 'card' ? 'Plastik karta orqali to\'lov' : 'Click / Payme QR to\'lov';
+        modalTitle.innerHTML = `<i data-lucide="${method === 'card' ? 'credit-card' : 'qr-code'}" class="w-5 h-5 text-[#881337]"></i> ` + titleText;
+        cashSec.classList.add('hidden');
+        custSec.classList.add('hidden');
+      }
+
+      document.getElementById('payment-modal').classList.remove('hidden');
+      document.getElementById('payment-modal').classList.add('flex');
       lucide.createIcons();
     }
 
     function closePaymentModal() {
-      const modal = document.getElementById('payment-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      document.getElementById('barcode-input').focus();
+      document.getElementById('payment-modal').classList.add('hidden');
+      document.getElementById('payment-modal').classList.remove('flex');
+      document.getElementById('cust-dropdown-panel')?.classList.add('hidden');
+      refocusBarcodeInput();
     }
 
     function setCashAmount(val) {
-      document.getElementById('cash-received').value = val;
+      document.getElementById('cash-input').value = val;
       calculateChange();
     }
 
+    document.getElementById('cash-input')?.addEventListener('input', calculateChange);
+
     function calculateChange() {
-      const rec = parseFloat(document.getElementById('cash-received').value) || 0;
-      const change = rec - currentTotal;
-      const disp = document.getElementById('change-display');
+      const given = parseFloat(document.getElementById('cash-input').value) || 0;
+      const change = given - currentTotal;
+      const changeDisplay = document.getElementById('change-display');
       if (change >= 0) {
-        disp.innerText = change.toLocaleString() + ' so\'m';
-        disp.className = 'font-black text-lg text-emerald-400 font-mono';
+        changeDisplay.innerText = change.toLocaleString() + " so'm";
+        changeDisplay.className = "font-black text-lg text-emerald-700 font-mono";
       } else {
-        disp.innerText = 'Yetarli emas (' + Math.abs(change).toLocaleString() + ')';
-        disp.className = 'font-bold text-sm text-rose-400 font-mono';
+        changeDisplay.innerText = "Yetarli emas (" + Math.abs(change).toLocaleString() + " so'm)";
+        changeDisplay.className = "font-bold text-sm text-red-600 font-mono";
       }
     }
 
     async function completeCheckout() {
-      const req = {
+      const custId = currentPaymentMethod === 'debt' ? (parseInt(document.getElementById('customer-select-val').value) || null) : null;
+      if (currentPaymentMethod === 'debt' && !custId) {
+        showToast("Iltimos, nasiyador mijozni tanlang!", "error");
+        return;
+      }
+
+      const cashierId = activeCashier ? activeCashier.id : 1;
+
+      const payload = {
         payment_method: currentPaymentMethod,
+        customer_id: custId,
+        cashier_id: cashierId,
+        paid_amount: currentTotal,
         discount_amount: 0,
         items: cart.map(i => ({
           product_id: i.product.id,
+          product_name: i.product.name,
+          unit: i.product.unit || 'dona',
           quantity: i.quantity,
-          unit_price: i.product.sell_price,
-          total_price: i.product.sell_price * i.quantity
+          unit_price: i.price,
+          total_price: i.quantity * i.price
         }))
       };
 
-      if (currentPaymentMethod === 'debt') {
-        const custId = parseInt(document.getElementById('customer-select').value);
-        if (!custId) {
-          alert("Iltimos, nasiyador mijozni tanlang!");
-          return;
-        }
-        req.customer_id = custId;
-      }
-
       try {
-        const res = await fetch('/api/sales', {
+        const res = await fetch('/api/sales/checkout', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(req)
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
 
         if (res.ok) {
           const result = await res.json();
-          closePaymentModal();
-          showReceipt(result);
+          const sale = result.sale || result;
+
+          if (sale && sale.items && cart.length > 0) {
+            sale.items.forEach(si => {
+              const p = allProducts.find(item => item.id === si.product_id);
+              if (p) {
+                p.stock_quantity = Math.max(0, parseFloat((p.stock_quantity - si.quantity).toFixed(3)));
+              }
+            });
+            applyProductFilter();
+          }
+
           cart = [];
           renderCart();
-          await loadProducts();
+          closePaymentModal();
+
+          const cashGiven = currentPaymentMethod === 'cash' ? (parseFloat(document.getElementById('cash-input').value) || currentTotal) : 0;
+          const changeVal = Math.max(0, cashGiven - currentTotal);
+
+          buildThermalReceiptDom({
+            store_name: storeSettings.store_name || "Olmos Orzu market",
+            company_name: storeSettings.company_name || "Olmos Orzu Savdo MChJ",
+            store_address: storeSettings.store_address || "Namangan viloyati",
+            store_phone: storeSettings.store_phone || "+998 (90) 123-45-67",
+            director_name: storeSettings.director_name || "",
+            receipt_no: sale.receipt_number || sale.receipt_no || ('CHK-' + (sale.id || Date.now())),
+            date: new Date(sale.created_at || Date.now()).toLocaleString('uz-UZ'),
+            cashier_name: activeCashier ? activeCashier.full_name : 'Kassir',
+            payment_method: formatPaymentMethodUz(sale.payment_method || currentPaymentMethod),
+            customer_name: (sale.customer && sale.customer.full_name) ? sale.customer.full_name : null,
+            items: (sale.items || []).map(i => ({
+              name: i.product_name || (i.product ? i.product.name : 'Tovar'),
+              unit: i.unit || (i.product ? i.product.unit : 'dona'),
+              quantity: i.quantity,
+              price: i.unit_price,
+              total: i.total_price
+            })),
+            total_amount: sale.total_amount || currentTotal,
+            cash_given: cashGiven,
+            change: changeVal
+          });
+
+          showReceipt(result);
         } else {
           const err = await res.json();
-          alert("Savdoni saqlashda xato: " + (err.error || "Noma'lum"));
+          showToast(err.error || "To'lovni amalga oshirishda xatolik!", "error");
         }
       } catch (err) {
-        alert("Server bilan aloqa xatosi!");
+        showToast("Server bilan aloqa uzildi!", "error");
       }
     }
 
-    function showReceipt(sale) {
+    function formatPaymentMethodUz(m) {
+      if (!m) return "Naqd";
+      m = m.toLowerCase();
+      if (m === 'cash' || m === 'naqd') return "Naqd pul";
+      if (m === 'card' || m === 'karta') return "Plastik karta (Uzcard/Humo)";
+      if (m === 'qr' || m === 'click') return "Click / Payme QR";
+      if (m === 'debt' || m === 'nasiya') return "Nasiya (Qarz)";
+      return m;
+    }
+
+    let currentLastReceiptPayload = null;
+    let isPrintingReceipt = false;
+
+    function resetPrintButton() {
+      const btn = document.getElementById('btn-modal-print');
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="printer" class="w-4 h-4"></i> <span>Chop etish (Enter)</span>`;
+        btn.className = "flex-1 py-2.5 bg-[#881337] hover:bg-[#9f1239] text-white rounded-xl font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all duration-300 active:scale-95 shadow-md";
+        lucide.createIcons();
+      }
+    }
+
+    async function printReceiptFromModal() {
+      if (isPrintingReceipt) return;
+      isPrintingReceipt = true;
+
+      const btn = document.getElementById('btn-modal-print');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>Chop etilmoqda...</span>`;
+        lucide.createIcons();
+      }
+
+      try {
+        if (currentLastReceiptPayload) {
+          const res = await fetch('/api/printer/print-receipt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(currentLastReceiptPayload)
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(`Chek to'g'ridan-to'g'ri chop etildi (${data.printer || 'XP-80C'})!`, "success");
+          } else {
+            showToast("Printer xatosi: " + (data.error || "Printer topilmadi"), "error");
+          }
+        } else {
+          showToast("Chek ma'lumotlari topilmadi", "error");
+        }
+      } catch (err) {
+        console.error("Print error:", err);
+        showToast("Printer bilan aloqa xatosi!", "error");
+      }
+
+      if (btn) {
+        btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> <span>Chop etildi</span>`;
+        btn.className = "flex-1 py-2.5 bg-emerald-700 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all duration-300 shadow-md";
+        lucide.createIcons();
+      }
+
+      setTimeout(() => {
+        isPrintingReceipt = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="rotate-ccw" class="w-4 h-4"></i> <span>Qayta chop etish</span>`;
+          btn.className = "flex-1 py-2.5 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all duration-300 active:scale-95 shadow-md";
+          lucide.createIcons();
+        }
+      }, 1000);
+    }
+
+    function buildThermalReceiptDom(p) {
+      const el = document.getElementById('thermal-receipt-print');
+      if (!el) return;
+
+      let itemsHtml = '';
+      p.items.forEach((item, idx) => {
+        itemsHtml += `
+          <div style="margin-bottom: 4px;">
+            <div><b>${idx + 1}. ${item.name}</b></div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px;">
+              <span>${formatQty(item.quantity)} ${item.unit} x ${item.price.toLocaleString()}</span>
+              <span><b>${item.total.toLocaleString()} so'm</b></span>
+            </div>
+          </div>
+        `;
+      });
+
+      el.innerHTML = `
+        <div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 6px;">
+          <div style="font-size: 15px; font-weight: bold; letter-spacing: 0.5px;">${p.store_name}</div>
+          ${p.company_name ? `<div style="font-size: 10px;">${p.company_name}</div>` : ''}
+          ${p.store_address ? `<div style="font-size: 10px;">${p.store_address}</div>` : ''}
+          ${p.store_phone ? `<div style="font-size: 10px;">Tel: ${p.store_phone}</div>` : ''}
+          ${p.director_name ? `<div style="font-size: 10px;">Rahbar: ${p.director_name}</div>` : ''}
+        </div>
+
+        <div style="font-size: 11px; font-family: monospace; line-height: 1.3;">
+          <div>Chek No: <b>${p.receipt_no}</b></div>
+          <div>Sana:    ${p.date}</div>
+          <div>Kassir:  ${p.cashier_name}</div>
+          <div>To'lov:  <b>${p.payment_method}</b></div>
+          ${p.customer_name ? `<div>Mijoz:   <b>${p.customer_name}</b></div>` : ''}
+          <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
+        </div>
+
+        <div style="font-size: 11px; font-family: monospace;">
+          ${itemsHtml}
+          <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
+        </div>
+
+        <div style="font-size: 13px; font-family: monospace; font-weight: bold; text-align: right;">
+          JAMI: ${p.total_amount.toLocaleString()} SO'M
+        </div>
+
+        ${p.cash_given > 0 ? `
+          <div style="font-size: 11px; font-family: monospace; text-align: right; margin-top: 3px;">
+            <div>To'langan: ${p.cash_given.toLocaleString()} so'm</div>
+            <div>Qaytim:    ${p.change.toLocaleString()} so'm</div>
+          </div>
+        ` : ''}
+
+        <div style="border-top: 1px dashed #000; margin: 8px 0;"></div>
+        <div style="text-align: center; font-size: 10px; font-family: monospace;">
+          <p style="margin: 2px 0;">Xaridingiz uchun rahmat!</p>
+          <p style="margin: 2px 0;">Yana tashrif buyuring!</p>
+          <p style="margin: 2px 0; color: #555;">ORZU POS - Oflayn tizim</p>
+        </div>
+      `;
+    }
+
+    function showReceipt(resData) {
+      const sale = resData.sale || resData;
+      resetPrintButton();
+
+      const receiptNo = sale.receipt_number || sale.receipt_no || ('CHK-' + (sale.id || Date.now()));
+      const receiptDate = new Date(sale.created_at || Date.now()).toLocaleString('uz-UZ');
+      const paid = sale.paid_amount || sale.cash_paid || currentTotal;
+      const ch = Math.max(0, paid - (sale.total_amount || currentTotal));
+
+      currentLastReceiptPayload = {
+        store_name: storeSettings.store_name || "Olmos Orzu market",
+        company_name: storeSettings.company_name || "Olmos Orzu Savdo MChJ",
+        store_address: storeSettings.store_address || "Namangan viloyati",
+        store_phone: storeSettings.store_phone || "+998 90 123-45-67",
+        director_name: storeSettings.director_name || "",
+        receipt_no: receiptNo,
+        date: receiptDate,
+        cashier_name: activeCashier ? activeCashier.full_name : 'Kassir',
+        payment_method: formatPaymentMethodUz(sale.payment_method || currentPaymentMethod),
+        customer_name: (sale.customer && (sale.customer.full_name || sale.customer.name)) || "",
+        total_amount: sale.total_amount || currentTotal,
+        cash_given: paid,
+        change: ch,
+        items: (sale.items || []).map(i => ({
+          name: i.product_name || (i.product ? i.product.name : (i.name || 'Tovar')),
+          unit: i.unit || (i.product && i.product.unit ? i.product.unit : 'dona'),
+          quantity: i.quantity,
+          unit_price: i.unit_price,
+          total_price: i.total_price
+        }))
+      };
+
       let text = `================================\n`;
-      text += `        ORZU POS\n`;
-      text += `    Olmos Orzu market\n`;
+      text += `        ${(storeSettings.store_name || "OLMOS ORZU MARKET").toUpperCase()}\n`;
+      text += `    ${storeSettings.store_address || "Savdo markazi"}\n`;
+      text += `    Tel: ${storeSettings.store_phone || "+998 90 123-45-67"}\n`;
       text += `================================\n`;
-      text += `Chek №: ${sale.receipt_no}\n`;
-      text += `Sana: ${new Date(sale.created_at).toLocaleString('uz-UZ')}\n`;
-      text += `To'lov turi: ${sale.payment_method.toUpperCase()}\n`;
+      text += `Chek No: ${receiptNo}\n`;
+      text += `Sana:    ${receiptDate}\n`;
+      text += `Kassir:  ${activeCashier ? activeCashier.full_name : 'Kassir'}\n`;
+      text += `To'lov:  ${formatPaymentMethodUz(sale.payment_method || currentPaymentMethod)}\n`;
+      if (sale.customer && (sale.customer.full_name || sale.customer.name)) {
+        text += `Mijoz:   ${sale.customer.full_name || sale.customer.name}\n`;
+      }
       text += `--------------------------------\n`;
-      sale.items.forEach((item, i) => {
-        text += `${i+1}. ${item.product ? item.product.name : 'Tovar'} x ${item.quantity}\n`;
-        text += `   ${item.unit_price.toLocaleString()} = ${item.total_price.toLocaleString()} so'm\n`;
+      (sale.items || []).forEach((item, i) => {
+        const pName = item.product_name || (item.product ? item.product.name : (item.name || 'Tovar'));
+        const unit = item.unit || (item.product && item.product.unit ? item.product.unit : 'dona');
+        text += `${i+1}. ${pName}\n`;
+        text += `   ${formatQty(item.quantity)} ${unit} x ${(item.unit_price || 0).toLocaleString()} = ${(item.total_price || 0).toLocaleString()} so'm\n`;
       });
       text += `--------------------------------\n`;
-      text += `JAMI: ${sale.total_amount.toLocaleString()} SO'M\n`;
+      text += `JAMI: ${(sale.total_amount || currentTotal).toLocaleString()} SO'M\n`;
+      if (sale.paid_amount > 0 || sale.cash_paid > 0) {
+        text += `To'langan: ${paid.toLocaleString()} so'm\n`;
+        text += `Qaytim:    ${ch.toLocaleString()} so'm\n`;
+      }
       text += `================================\n`;
-      text += `Xaridingiz uchun rahmat!\n\n`;
+      text += `Xaridingiz uchun rahmat!\n`;
+      text += `Yana tashrif buyuring!\n`;
 
       document.getElementById('receipt-content').innerText = text;
       const modal = document.getElementById('receipt-modal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
+
+      lucide.createIcons();
+      setTimeout(() => {
+        document.getElementById('btn-modal-print')?.focus();
+      }, 100);
     }
 
     function closeReceiptModal() {
       const modal = document.getElementById('receipt-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
-      document.getElementById('barcode-input').focus();
+      refocusBarcodeInput();
     }
 
     // Run
     init();
   </script>
+  <script>
+    window.__ORZU_APP_NAME__ = 'kassa';
+  </script>
+  <script src="/shared/app_tabs.js"></script>
+  <script src="/shared/virtual_keyboard.js"></script>
 </body>
 </html>

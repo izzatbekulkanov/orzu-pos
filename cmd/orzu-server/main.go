@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
@@ -17,15 +18,16 @@ import (
 )
 
 func main() {
-	fmt.Println("==================================================")
-	fmt.Println("   🛒 ORZU POS — Olmos Orzu market Server v1.0   ")
-	fmt.Println("   Namangan davlat pedagogika instituti RTTM      ")
-	fmt.Println("==================================================")
+	fmt.Println("\n=======================================================")
+	fmt.Println("   ORZU POS - Olmos Orzu market Server v1.0            ")
+	fmt.Println("   Jonli Terminal & So'rovlar Logi                     ")
+	fmt.Println("   Namangan davlat pedagogika instituti RTTM           ")
+	fmt.Println("=======================================================")
 
 	// 1. Ma'lumotlar bazasini ishga tushirish (PostgreSQL yoki SQLite)
 	_, err := database.InitDB()
 	if err != nil {
-		log.Fatalf("❌ Ma'lumotlar bazasida jiddiy xato: %v\n", err)
+		log.Fatalf("[Xatolik] Ma'lumotlar bazasida jiddiy xato: %v\n", err)
 	}
 
 	app := fiber.New(fiber.Config{
@@ -40,6 +42,22 @@ func main() {
 	kassaFS, _ := fs.Sub(web.WebFS, "kassa")
 	adminFS, _ := fs.Sub(web.WebFS, "admin")
 	iconsFS, _ := fs.Sub(web.WebFS, "icons")
+	sharedFS, _ := fs.Sub(web.WebFS, "shared")
+	dbFS, _ := fs.Sub(web.WebFS, "db")
+	backupFS, _ := fs.Sub(web.WebFS, "backup")
+
+	// /shared -> 100% Oflayn Resurslar (Tailwind, Lucide, CSS)
+	app.Use("/shared", filesystem.New(filesystem.Config{
+		Root:   http.FS(sharedFS),
+		Browse: false,
+	}))
+
+	// /uploads -> Oflayn mahalliy tovar rasmlari
+	uploadsDir := `D:\ORZU_POS\uploads`
+	_ = os.MkdirAll(filepath.Join(uploadsDir, "products"), 0755)
+	_ = os.MkdirAll(filepath.Join("uploads", "products"), 0755)
+	app.Static("/uploads", uploadsDir)
+	app.Static("/uploads", "./uploads")
 
 	// /manifest.json -> PWA Manifest
 	app.Get("/manifest.json", func(c *fiber.Ctx) error {
@@ -65,6 +83,22 @@ func main() {
 		Browse:       false,
 	}))
 
+	// /db -> Ma'lumotlar bazasi boshqaruvi
+	app.Use("/db", filesystem.New(filesystem.Config{
+		Root:         http.FS(dbFS),
+		Index:        "index.html",
+		NotFoundFile: "index.html",
+		Browse:       false,
+	}))
+
+	// /backup -> Arxiv va zaxira
+	app.Use("/backup", filesystem.New(filesystem.Config{
+		Root:         http.FS(backupFS),
+		Index:        "index.html",
+		NotFoundFile: "index.html",
+		Browse:       false,
+	}))
+
 	// / -> Kassa ilovasi
 	app.Use("/", filesystem.New(filesystem.Config{
 		Root:         http.FS(kassaFS),
@@ -81,30 +115,29 @@ func main() {
 	// Lokal tarmoq (LAN) IP manzillarini aniqlash
 	printServerAddresses(port)
 
-	log.Printf("🚀 ORZU Server ishga tushdi: port :%s\n", port)
+	log.Printf("[Server] ORZU Server ishga tushdi: port :%s\n", port)
+	
+	// Windows tizimida pastki o'ng burchakdagi (System Tray) belgini ishga tushirish
 	go func() {
-		if err := app.Listen(":" + port); err != nil {
-			log.Fatalf("Serverni ishga tushirishda xato: %v\n", err)
-		}
+		_ = tray.InitTray(port)
 	}()
 
-	// Windows tizimida pastki o'ng burchakdagi (System Tray) belgini ishga tushirish
-	if err := tray.InitTray(port); err != nil {
-		select {}
+	if err := app.Listen(":" + port); err != nil {
+		log.Fatalf("Serverni ishga tushirishda xato: %v\n", err)
 	}
 }
 
 func printServerAddresses(port string) {
-	fmt.Printf("\n✨ Kassa ilovasi manzili:      http://localhost:%s\n", port)
-	fmt.Printf("📊 Do'kon boshqaruv paneli:     http://localhost:%s/admin\n\n", port)
+	fmt.Printf("\nKassa ilovasi manzili:      http://localhost:%s\n", port)
+	fmt.Printf("Do'kon boshqaruv paneli:    http://localhost:%s/admin\n\n", port)
 
 	addrs, err := net.InterfaceAddrs()
 	if err == nil {
-		fmt.Println("🌐 Lokal tarmoqdagi boshqa kassa va telefonlar uchun ulanish manzillari:")
+		fmt.Println("Lokal tarmoqdagi boshqa kassa va telefonlar uchun ulanish manzillari:")
 		for _, addr := range addrs {
 			if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
 				if ipNet.IP.To4() != nil {
-					fmt.Printf("   👉 http://%s:%s\n", ipNet.IP.String(), port)
+					fmt.Printf("   http://%s:%s\n", ipNet.IP.String(), port)
 				}
 			}
 		}

@@ -4,41 +4,64 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
-	"log"
+	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"syscall"
 	"time"
+
+	"github.com/izzatbekulkanov/orzu-pos/internal/installer"
+	"github.com/izzatbekulkanov/orzu-pos/internal/tray"
 )
 
 func main() {
-	fmt.Println("==================================================")
-	fmt.Println("   💾 ORZU Arxiv — Avtomatik Zaxira Vositası v1.0 ")
-	fmt.Println("   Namangan davlat pedagogika instituti RTTM      ")
-	fmt.Println("==================================================")
-
-	backupDir := "backups"
-	if err := os.MkdirAll(backupDir, 0755); err != nil {
-		log.Fatalf("Zaxira papkasini yaratib bo'lmadi: %v", err)
+	// 1. Agar Arxiv oynasi allaqachon ochilgan bo'lsa, uni oldinga chiqarish
+	if tray.ActivateExistingWindow("ORZU Arxiv") {
+		return
 	}
+
+	// 2. O'rnatuvchi o'rnatilganligini tekshirish
+	if !installer.EnsureInstalled("ORZU Arxiv") {
+		return
+	}
+
+	// 3. Tezkor avtomatik zaxira nusxa yaratish
+	createQuickBackup()
+
+	baseURL := "http://localhost:8080"
+	targetURL := "http://localhost:8080/backup"
+
+	// 4. Serverni tekshirish
+	if !isServerUp(baseURL) {
+		startServerSilently()
+		for i := 0; i < 6; i++ {
+			time.Sleep(500 * time.Millisecond)
+			if isServerUp(baseURL) {
+				break
+			}
+		}
+	}
+
+	// 5. Arxiv darchasini ochish
+	tray.OpenApp(targetURL)
+}
+
+func createQuickBackup() {
+	backupDir := `D:\ORZU_POS\backups`
+	_ = os.MkdirAll(backupDir, 0755)
 
 	timestamp := time.Now().Format("2006-01-02_15-04-05")
 	archiveName := filepath.Join(backupDir, fmt.Sprintf("orzu_pos_backup_%s.zip", timestamp))
 
-	dbFile := filepath.Join("data", "orzu_pos.db")
-	if _, err := os.Stat(dbFile); os.IsNotExist(err) {
-		log.Printf("⚠️ %s fayli topilmadi. PostgreSQL rejimida pg_dump ishlatilishi kerak.\n", dbFile)
-		return
+	dbFile := `D:\ORZU_POS\data\orzu_pos.db`
+	if _, err := os.Stat(dbFile); err != nil {
+		dbFile = filepath.Join("data", "orzu_pos.db")
 	}
 
-	log.Printf("📦 Baza zaxira qilinmoqda: %s -> %s\n", dbFile, archiveName)
-
-	if err := zipFile(dbFile, archiveName); err != nil {
-		log.Fatalf("❌ Arxivlashda xatolik: %v", err)
+	if fi, err := os.Stat(dbFile); err == nil && fi.Size() > 0 {
+		_ = zipFile(dbFile, archiveName)
 	}
-
-	fi, _ := os.Stat(archiveName)
-	log.Printf("✅ Zaxira muvaffaqiyatli saqlandi! Hajmi: %.2f KB\n", float64(fi.Size())/1024)
-	log.Println("Avtomatik zaxira rejimi faol. Har kuni 23:59 da avtomatik yangi nusxa olinadi.")
 }
 
 func zipFile(source, target string) error {
@@ -76,4 +99,38 @@ func zipFile(source, target string) error {
 
 	_, err = io.Copy(writer, file)
 	return err
+}
+
+func isServerUp(url string) bool {
+	client := http.Client{Timeout: 600 * time.Millisecond}
+	resp, err := client.Get(url + "/api/settings")
+	if err == nil && resp.StatusCode == 200 {
+		resp.Body.Close()
+		return true
+	}
+	return false
+}
+
+func startServerSilently() {
+	exeDir, _ := os.Executable()
+	baseDir := filepath.Dir(exeDir)
+
+	candidates := []string{
+		filepath.Join(baseDir, "orzu-server.exe"),
+		filepath.Join(`D:\ORZU_POS`, "orzu-server.exe"),
+		filepath.Join("bin", "orzu-server.exe"),
+	}
+
+	for _, path := range candidates {
+		if _, err := os.Stat(path); err == nil {
+			cmd := exec.Command(path)
+			cmd.Dir = filepath.Dir(path)
+			cmd.SysProcAttr = &syscall.SysProcAttr{
+				HideWindow:    true,
+				CreationFlags: 0x08000000,
+			}
+			_ = cmd.Start()
+			return
+		}
+	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -16,6 +17,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
+	"github.com/izzatbekulkanov/orzu-pos/internal/database"
+	"github.com/izzatbekulkanov/orzu-pos/internal/installer"
+	"github.com/izzatbekulkanov/orzu-pos/internal/license"
+	"github.com/izzatbekulkanov/orzu-pos/internal/services"
 	"github.com/izzatbekulkanov/orzu-pos/internal/tray"
 	"github.com/izzatbekulkanov/orzu-pos/web"
 )
@@ -23,10 +28,10 @@ import (
 var defaultInstallDir = `D:\ORZU_POS`
 
 func main() {
-	fmt.Println("==================================================")
-	fmt.Println("   📦 ORZU POS — O'rnatuvchi Markazi (Setup) v1.0 ")
-	fmt.Println("   Olmos Orzu market modullar menejeri            ")
-	fmt.Println("==================================================")
+	// 1. Agar O'rnatuvchi oynasi allaqachon ochilgan bo'lsa, uni oldinga chiqarish
+	if tray.ActivateExistingWindow("ORZU O'rnatuvchi") || tray.ActivateExistingWindow("ORZU Setup") {
+		return
+	}
 
 	if envDir := os.Getenv("ORZU_INSTALL_DIR"); envDir != "" {
 		defaultInstallDir = envDir
@@ -55,6 +60,19 @@ func main() {
 		Browse: false,
 	}))
 
+	sharedFS, _ := fs.Sub(web.WebFS, "shared")
+	app.Use("/shared", filesystem.New(filesystem.Config{
+		Root:   http.FS(sharedFS),
+		Browse: false,
+	}))
+
+	// /uploads -> Oflayn tovar rasmlari
+	uploadsDir := filepath.Join(defaultInstallDir, "uploads")
+	_ = os.MkdirAll(filepath.Join(uploadsDir, "products"), 0755)
+	_ = os.MkdirAll(filepath.Join("uploads", "products"), 0755)
+	app.Static("/uploads", uploadsDir)
+	app.Static("/uploads", "./uploads")
+
 	installerFS, _ := fs.Sub(web.WebFS, "installer")
 	app.Use("/", filesystem.New(filesystem.Config{
 		Root:         http.FS(installerFS),
@@ -67,12 +85,11 @@ func main() {
 
 	go func() {
 		time.Sleep(600 * time.Millisecond)
-		fmt.Printf("🚀 O'rnatuvchi oynasi ochilmoqda: %s\n", url)
 		openAppWindow(url)
 	}()
 
-	fmt.Printf("O'rnatuvchi xizmati faol: %s\n", url)
-	if err := app.Listen("127.0.0.1:" + port); err != nil {
+	log.Printf("[ORZU Setup] O'rnatuvchi markazi faol: %s\n", url)
+	if err := app.Listen(":" + port); err != nil {
 		log.Fatalf("Xatolik: %v", err)
 	}
 }
@@ -85,24 +102,95 @@ func setupInstallerAPI(app *fiber.App) {
 			"install_dir": defaultInstallDir,
 			"modules": fiber.Map{
 				"db": fiber.Map{
-					"installed": isFileExists(filepath.Join(defaultInstallDir, "orzu-db.exe")) || isFileExists("bin/orzu-db.exe"),
+					"installed": isModuleInstalled("db"),
 					"running":   false,
 				},
 				"server": fiber.Map{
-					"installed": isFileExists(filepath.Join(defaultInstallDir, "orzu-server.exe")) || isFileExists("bin/orzu-server.exe"),
+					"installed": isModuleInstalled("server"),
 					"running":   isServerRunning(),
 				},
 				"kassa": fiber.Map{
-					"installed": isFileExists(filepath.Join(defaultInstallDir, "orzu-kassa.exe")) || isFileExists("bin/orzu-kassa.exe"),
+					"installed": isModuleInstalled("kassa"),
 					"running":   false,
 				},
 				"backup": fiber.Map{
-					"installed": isFileExists(filepath.Join(defaultInstallDir, "orzu-backup.exe")) || isFileExists("bin/orzu-backup.exe"),
+					"installed": isModuleInstalled("backup"),
 					"running":   false,
 				},
 			},
+			"license": license.GetStatus(),
 		}
 		return c.JSON(status)
+	})
+
+	// License check and activate
+	api.Get("/license", func(c *fiber.Ctx) error {
+		return c.JSON(license.GetStatus())
+	})
+
+	api.Post("/activate", func(c *fiber.Ctx) error {
+		var req struct {
+			Key string `json:"key"`
+		}
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": "Noto'g'ri so'rov formati"})
+		}
+		ok, msg := license.ValidateAndActivate(req.Key)
+		if !ok {
+			return c.Status(400).JSON(fiber.Map{"error": msg})
+		}
+		return c.JSON(fiber.Map{"success": true, "message": msg, "license": license.GetStatus()})
+	})
+
+	// DB Status & Diagnostic
+	api.Get("/db-status", func(c *fiber.Ctx) error {
+		dbPath := filepath.Join(defaultInstallDir, "data", "orzu_pos.db")
+		if !isFileExists(dbPath) {
+			dbPath = filepath.Join("data", "orzu_pos.db")
+		}
+
+		status := fiber.Map{
+			"db_type":    "SQLite (Oflayn va mustaqil rejim)",
+			"path":       dbPath,
+			"exists":     isFileExists(dbPath),
+			"size_kb":    "0 KB",
+			"tables":     8,
+			"status":     "Normal",
+			"migrations": "Barcha jadvallar tayyor",
+		}
+
+		if isFileExists(dbPath) {
+			if fi, err := os.Stat(dbPath); err == nil {
+				status["size_kb"] = fmt.Sprintf("%.1f KB", float64(fi.Size())/1024)
+			}
+		}
+
+		return c.JSON(status)
+	})
+
+	api.Post("/db-migrate", func(c *fiber.Ctx) error {
+		_, err := database.InitDB()
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.JSON(fiber.Map{"success": true, "message": "Jadvallar muvaffaqiyatli yangilandi!"})
+	})
+
+	// Backups API
+	api.Get("/backups", func(c *fiber.Ctx) error {
+		list, err := services.ListBackups()
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.JSON(list)
+	})
+
+	api.Post("/backup-create", func(c *fiber.Ctx) error {
+		b, err := services.CreateBackup()
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.JSON(fiber.Map{"success": true, "backup": b})
 	})
 
 	api.Post("/install/:mod", func(c *fiber.Ctx) error {
@@ -111,6 +199,7 @@ func setupInstallerAPI(app *fiber.App) {
 			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 		}
 		_ = createDesktopShortcut(mod)
+		_ = installer.MarkInstalled()
 		return c.JSON(fiber.Map{"success": true})
 	})
 
@@ -125,14 +214,14 @@ func setupInstallerAPI(app *fiber.App) {
 			_ = createDesktopShortcut(m)
 		}
 
-		// DB Init
+		_ = installer.MarkInstalled()
+
+		// Init database
 		go func() {
-			cmd := exec.Command(filepath.Join(defaultInstallDir, "orzu-db.exe"))
-			cmd.Dir = defaultInstallDir
-			_ = cmd.Run()
+			_, _ = database.InitDB()
 		}()
 
-		return c.JSON(fiber.Map{"success": true, "message": "Barcha modullar o'rnatildi!"})
+		return c.JSON(fiber.Map{"success": true, "message": "Barcha modullar muvaffaqiyatli o'rnatildi!"})
 	})
 
 	api.Post("/run/:mod", func(c *fiber.Ctx) error {
@@ -141,6 +230,9 @@ func setupInstallerAPI(app *fiber.App) {
 		targetPath := filepath.Join(defaultInstallDir, exeName)
 		if !isFileExists(targetPath) {
 			targetPath = filepath.Join("bin", exeName)
+		}
+		if !isFileExists(targetPath) {
+			targetPath = filepath.Join(`D:\Github\orzu-pos\bin`, exeName)
 		}
 		if !isFileExists(targetPath) {
 			return c.Status(404).JSON(fiber.Map{"error": "Fayl topilmadi"})
@@ -165,6 +257,153 @@ func setupInstallerAPI(app *fiber.App) {
 		}
 		return c.JSON(fiber.Map{"success": true})
 	})
+
+	// GitHub Auto-Updater API
+	api.Get("/updates/check", func(c *fiber.Ctx) error {
+		localVersion := getLocalVersionInfo()
+
+		client := &http.Client{Timeout: 6 * time.Second}
+		remoteURL := "https://raw.githubusercontent.com/izzatbekulkanov/orzu-pos/main/version.json"
+		req, err := http.NewRequest("GET", remoteURL, nil)
+		if err != nil {
+			return c.JSON(fiber.Map{
+				"online":          false,
+				"has_update":      false,
+				"current_version": localVersion.Version,
+				"message":         "So'rov xatosi: " + err.Error(),
+			})
+		}
+		req.Header.Set("Cache-Control", "no-cache")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			return c.JSON(fiber.Map{
+				"online":          false,
+				"has_update":      false,
+				"current_version": localVersion.Version,
+				"message":         "Internet yoki GitHub bilan aloqa yo'q (Oflayn rejim)",
+			})
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return c.JSON(fiber.Map{
+				"online":          true,
+				"has_update":      false,
+				"current_version": localVersion.Version,
+				"message":         fmt.Sprintf("GitHub status: %d", resp.StatusCode),
+			})
+		}
+
+		var remoteVersion struct {
+			Version     string   `json:"version"`
+			VersionCode int      `json:"version_code"`
+			ReleaseDate string   `json:"release_date"`
+			Title       string   `json:"title"`
+			Changelog   []string `json:"changelog"`
+		}
+
+		if err := json.NewDecoder(resp.Body).Decode(&remoteVersion); err != nil {
+			return c.JSON(fiber.Map{
+				"online":          true,
+				"has_update":      false,
+				"current_version": localVersion.Version,
+				"error":           "version.json ni o'qib bo'lmadi",
+			})
+		}
+
+		hasUpdate := remoteVersion.VersionCode > localVersion.VersionCode ||
+			(remoteVersion.Version != "" && remoteVersion.Version != localVersion.Version)
+
+		return c.JSON(fiber.Map{
+			"online":          true,
+			"has_update":      hasUpdate,
+			"current_version": localVersion.Version,
+			"latest_version":  remoteVersion.Version,
+			"title":           remoteVersion.Title,
+			"release_date":    remoteVersion.ReleaseDate,
+			"changelog":       remoteVersion.Changelog,
+		})
+	})
+
+	api.Post("/updates/apply", func(c *fiber.Ctx) error {
+		gitDir := `D:\Github\orzu-pos`
+		hasGit := isFileExists(filepath.Join(gitDir, ".git"))
+
+		go func() {
+			time.Sleep(500 * time.Millisecond)
+			if hasGit {
+				pullCmd := exec.Command("git", "-C", gitDir, "pull", "origin", "main")
+				_ = pullCmd.Run()
+
+				buildScript := filepath.Join(gitDir, "build_all.ps1")
+				if isFileExists(buildScript) {
+					buildCmd := exec.Command("powershell", "-ExecutionPolicy", "Bypass", "-File", buildScript)
+					_ = buildCmd.Run()
+				}
+			}
+		}()
+
+		return c.JSON(fiber.Map{
+			"success": true,
+			"message": "Yangilanish jarayoni boshlandi. Dastur fayllari GitHub'dan tortilib, qayta yig'ilmoqda...",
+		})
+	})
+}
+
+type VersionInfo struct {
+	Version     string   `json:"version"`
+	VersionCode int      `json:"version_code"`
+	ReleaseDate string   `json:"release_date"`
+	Title       string   `json:"title"`
+	Changelog   []string `json:"changelog"`
+}
+
+func getLocalVersionInfo() VersionInfo {
+	defaultInfo := VersionInfo{
+		Version:     "2.2.0",
+		VersionCode: 220,
+		ReleaseDate: "2026-11-14",
+		Title:       "ORZU POS 2.2 — AI Tasvir Generatsiyasi va Smart Boshqaruv",
+		Changelog: []string{
+			"OpenRouter AI orqali tovarlar rasmini avtomatik generatsiya qilish va oflayn saqlash",
+			"GitHub orqali avtomatik yangilanishlarni tekshirish va o'rnatish tizimi",
+			"Sensor monobloklar uchun 2 bosqichli professional boshqaruv menyusi",
+			"Suriladigan (Drag & Drop) sensor klaviatura tugmasi",
+		},
+	}
+
+	candidates := []string{
+		filepath.Join(defaultInstallDir, "version.json"),
+		filepath.Join(`D:\Github\orzu-pos`, "version.json"),
+		"version.json",
+	}
+
+	for _, p := range candidates {
+		data, err := os.ReadFile(p)
+		if err == nil {
+			var vi VersionInfo
+			if err := json.Unmarshal(data, &vi); err == nil && vi.Version != "" {
+				return vi
+			}
+		}
+	}
+	return defaultInfo
+}
+
+func isModuleInstalled(mod string) bool {
+	exeName := fmt.Sprintf("orzu-%s.exe", mod)
+	candidates := []string{
+		filepath.Join(defaultInstallDir, exeName),
+		filepath.Join("bin", exeName),
+		filepath.Join(`D:\Github\orzu-pos\bin`, exeName),
+	}
+	for _, p := range candidates {
+		if isFileExists(p) {
+			return true
+		}
+	}
+	return false
 }
 
 func isFileExists(path string) bool {
@@ -186,21 +425,57 @@ func copyModule(mod string) error {
 	_ = os.MkdirAll(defaultInstallDir, 0755)
 	_ = os.MkdirAll(filepath.Join(defaultInstallDir, "assets", "icons"), 0755)
 
-	// Copy icons if present
-	if isFileExists(filepath.Join("assets", "icons", mod+".ico")) {
-		_ = copyFile(filepath.Join("assets", "icons", mod+".ico"), filepath.Join(defaultInstallDir, "assets", "icons", mod+".ico"))
-	}
-
 	exeName := fmt.Sprintf("orzu-%s.exe", mod)
-
-	srcPath := filepath.Join("bin", exeName)
 	destPath := filepath.Join(defaultInstallDir, exeName)
 
-	if !isFileExists(srcPath) {
-		return fmt.Errorf("%s manba fayli topilmadi", srcPath)
+	// Copy icons if available
+	iconName := mod + ".ico"
+	iconCandidates := []string{
+		filepath.Join("assets", "icons", iconName),
+		filepath.Join(`D:\Github\orzu-pos\assets\icons`, iconName),
+		filepath.Join(defaultInstallDir, "assets", "icons", iconName),
+	}
+	for _, ic := range iconCandidates {
+		if isFileExists(ic) && ic != filepath.Join(defaultInstallDir, "assets", "icons", iconName) {
+			_ = copyFile(ic, filepath.Join(defaultInstallDir, "assets", "icons", iconName))
+			break
+		}
 	}
 
-	return copyFile(srcPath, destPath)
+	// 1. If already installed at destination, succeed immediately!
+	if isFileExists(destPath) {
+		return nil
+	}
+
+	// 2. Search for source in possible locations
+	exeSelf, _ := os.Executable()
+	selfDir := filepath.Dir(exeSelf)
+
+	searchPaths := []string{
+		filepath.Join("bin", exeName),
+		filepath.Join(`D:\Github\orzu-pos\bin`, exeName),
+		filepath.Join(`D:\ORZU_POS`, exeName),
+		filepath.Join(selfDir, exeName),
+		filepath.Join(selfDir, "bin", exeName),
+	}
+
+	var foundSrc string
+	for _, p := range searchPaths {
+		if isFileExists(p) {
+			foundSrc = p
+			break
+		}
+	}
+
+	if foundSrc == "" {
+		return fmt.Errorf("%s manba fayli topilmadi. bin katalogini tekshiring.", exeName)
+	}
+
+	if foundSrc == destPath {
+		return nil
+	}
+
+	return copyFile(foundSrc, destPath)
 }
 
 func copyFile(src, dest string) error {

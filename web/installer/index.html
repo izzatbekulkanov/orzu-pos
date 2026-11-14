@@ -1,54 +1,42 @@
 <!DOCTYPE html>
-<html lang="uz" class="h-full bg-[#130407] text-rose-50">
+<html lang="uz" class="h-full bg-[#f1f5f9] text-slate-800">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#1b070d">
-  <meta name="msapplication-navbutton-color" content="#1b070d">
-  <meta name="apple-mobile-web-app-status-bar-style" content="#1b070d">
-  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#881337">
+  <meta name="msapplication-navbutton-color" content="#881337">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#881337">
+  <meta name="color-scheme" content="light">
   <title>ORZU POS — O'rnatuvchi va Modullar Markazi</title>
   <link rel="icon" type="image/png" href="/icons/installer.png">
   <link rel="manifest" href="/manifest.json">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    :root {
-      --bg-main: #130407;
-      --bg-bar: #1b070d;
-      --bg-card: rgba(38, 11, 20, 0.75);
-      --border-burgundy: rgba(244, 63, 94, 0.2);
-    }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #130407; }
-    ::-webkit-scrollbar-thumb { background: #4c1120; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #7a1830; }
-    .glass { background: rgba(38, 11, 20, 0.75); backdrop-filter: blur(14px); border: 1px solid rgba(244, 63, 94, 0.18); }
-    .glass-card { background: rgba(45, 12, 24, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(244, 63, 94, 0.2); }
-  </style>
+  <!-- 100% OFFLINE LOKAL RESURSLAR -->
+  <link rel="stylesheet" href="/shared/app.css">
+  <script src="/shared/tailwind.js"></script>
+  <script src="/shared/lucide.min.js"></script>
 </head>
-<body class="h-full flex flex-col font-sans select-none overflow-y-auto bg-[#130407]">
+<body class="h-full flex flex-col font-sans select-none overflow-y-auto bg-[#f1f5f9] text-slate-800">
 
   <!-- TOP HEADER (Unified Burgundy Bar matching - □ ✕ window frame) -->
-  <header class="bg-[#1b070d] border-b border-[#3d0f1b] px-6 py-4 sticky top-0 z-30 shadow-md">
+  <header class="bg-[#881337] border-b border-[#70102e] px-6 py-4 sticky top-0 z-30 shadow-md text-slate-900">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div class="flex items-center space-x-3.5">
-        <img src="/icons/installer.png" class="w-12 h-12 object-contain rounded-2xl shadow-xl shadow-rose-950/60 border border-rose-900/50 p-1 bg-[#250912]" alt="ORZU Logo">
+        <img src="/icons/installer.png" class="w-12 h-12 object-contain rounded-2xl shadow-xl shadow-rose-950/60 border border-slate-200 p-1 bg-white/10" alt="ORZU Logo">
         <div>
-          <h1 class="font-black text-lg tracking-wide text-white flex items-center gap-2">
-            <span class="bg-gradient-to-r from-rose-100 via-rose-200 to-amber-200 bg-clip-text text-transparent">ORZU POS</span>
-            <span class="text-xs px-2 py-0.5 rounded-md bg-rose-900/40 text-rose-300 font-bold border border-rose-800/40">O'rnatuvchi</span>
+          <h1 class="font-black text-lg tracking-wide text-slate-900 flex items-center gap-2">
+            <span class="text-rose-100">ORZU POS</span>
+            <span class="text-xs px-2 py-0.5 rounded-md bg-white text-[#881337] font-black border border-white/20">O'rnatuvchi</span>
           </h1>
-          <p class="text-xs text-rose-400 font-medium tracking-wide">Olmos Orzu market uchun 5 ta modulni boshqarish markazi</p>
+          <p class="text-xs text-rose-100 font-medium tracking-wide">Olmos Orzu market uchun 5 ta modulni boshqarish markazi</p>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
         <div class="text-right text-xs hidden md:block">
-          <p class="text-rose-300/70">O'rnatish manzili:</p>
-          <p class="font-mono text-rose-200 font-bold" id="install-dir-text">D:\ORZU_POS</p>
+          <p class="text-rose-100/80">O'rnatish manzili:</p>
+          <p class="font-mono text-slate-900 font-bold" id="install-dir-text">D:\ORZU_POS</p>
         </div>
-        <button onclick="installAll()" id="btn-install-all" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-800 via-rose-700 to-amber-700 hover:from-rose-700 hover:to-amber-600 text-white font-black text-xs shadow-xl shadow-rose-950/60 flex items-center gap-2 transition active:scale-95 border border-rose-500/40">
+        <button onclick="installAll()" id="btn-install-all" class="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-[#881337] font-black text-xs shadow-md flex items-center gap-2 transition active:scale-95 border border-rose-500/40">
           <i data-lucide="sparkles" class="w-4 h-4"></i> Barchasini 1-klikda o'rnatish
         </button>
       </div>
@@ -56,26 +44,105 @@
   </header>
 
   <!-- MAIN BODY -->
-  <main class="flex-1 max-w-6xl w-full mx-auto p-6 space-y-6 bg-[#130407]">
+  <main class="flex-1 max-w-6xl w-full mx-auto p-6 space-y-6 bg-[#f1f5f9]">
+
+    <!-- LICENSE / ACTIVATION STATUS BANNER (30 Days Trial / Commercial License) -->
+    <div class="glass rounded-3xl p-5 relative overflow-hidden shadow-xl border border-slate-200" id="license-banner">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 rounded-2xl bg-[#280a15] border border-rose-800/50 flex items-center justify-center shrink-0 text-amber-400" id="lic-icon-wrapper">
+            <i data-lucide="shield-check" class="w-6 h-6" id="lic-icon"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-[#881337] uppercase tracking-wider">Litsenziya Holati</span>
+              <span id="lic-status-badge" class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-950/70 text-amber-300 border border-amber-800/50">
+                Tekshirilmoqda...
+              </span>
+            </div>
+            <h3 class="text-base font-extrabold text-slate-900 mt-0.5" id="lic-headline">
+              30 kunlik sinov muddati
+            </h3>
+            <p class="text-xs text-slate-600 mt-0.5" id="lic-subtext">
+              Dastur barcha imkoniyatlar bilan 1 oy davomida bepul faoliyat ko'rsatadi.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 self-end md:self-center">
+          <button onclick="openLicenseModal()" class="px-4 py-2.5 rounded-xl bg-[#b45309] hover:bg-[#d97706] text-slate-900 font-bold text-xs transition shadow-lg border border-amber-500/40 flex items-center gap-2">
+            <i data-lucide="key" class="w-4 h-4"></i> Faollashtirish kaliti
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- GITHUB AUTO-UPDATER & VERSION CONTROL      -->
+    <!-- ========================================== -->
+    <div class="glass rounded-3xl p-6 relative overflow-hidden shadow-xl border border-slate-200" id="updater-banner">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div class="flex items-start space-x-4">
+          <div class="w-12 h-12 rounded-2xl bg-[#280a15] border border-rose-800/60 flex items-center justify-center shrink-0 text-slate-900 shadow-md">
+            <i data-lucide="git-pull-request" class="w-6 h-6 text-rose-300"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-[#881337] uppercase tracking-wider">GitHub Tizim Yangilanishlari</span>
+              <span id="updater-version-badge" class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#881337] text-slate-900 border border-rose-500/50">
+                v2.2.0 (O'rnatilgan)
+              </span>
+              <span id="updater-status-pill" class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-800/50 hidden">
+                So'nggi versiya
+              </span>
+            </div>
+            <h3 class="text-base font-extrabold text-slate-900 mt-1" id="updater-headline">
+              GitHub Repozitoriysi bilan integratsiya
+            </h3>
+            <p class="text-xs text-slate-600 mt-0.5 max-w-2xl" id="updater-subtext">
+              GitHub (izzatbekulkanov/orzu-pos) orqali yangilanishlar chiqishi bilan tizim avtomatik xabar beradi va 1-klikda barcha 6 ta dasturni yangilaydi.
+            </p>
+            <div id="updater-changelog-box" class="mt-2.5 p-3 rounded-xl bg-[#18050e] border border-slate-200 text-xs text-rose-200 hidden">
+              <div class="font-bold text-slate-900 mb-1 flex items-center gap-1.5 text-amber-300">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Yangi versiyadagi o'zgarishlar:
+              </div>
+              <ul id="updater-changelog-list" class="list-disc list-inside space-y-0.5 text-rose-300/90 text-[11px]">
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 self-start lg:self-center shrink-0">
+          <button onclick="checkSystemUpdates(true)" id="btn-check-updates" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition border border-rose-800/50 flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-md">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-[#881337]" id="icon-refresh-update"></i>
+            <span>Tekshirish</span>
+          </button>
+          <button onclick="applySystemUpdate()" id="btn-apply-update" class="px-4 py-2.5 rounded-xl bg-[#059669] hover:bg-[#047857] text-white font-extrabold text-xs transition border border-emerald-500/50 flex items-center gap-2 cursor-pointer active:scale-95 shadow-lg hidden">
+            <i data-lucide="download-cloud" class="w-4 h-4"></i>
+            <span>GitHub'dan yangilash</span>
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Overview Banner -->
     <div class="glass rounded-3xl p-6 relative overflow-hidden shadow-xl">
       <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-rose-600/10 rounded-full blur-3xl pointer-events-none"></div>
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
         <div>
-          <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">Tayyor POS andazasidagi 5 bosqich</span>
-          <h2 class="text-xl font-extrabold text-white mt-1">Dasturlarning kompyuterdagi holati:</h2>
-          <p class="text-xs text-rose-300/80 mt-1">Quyida qaysi modullar o'rnatilgani va qaysilari hali o'rnatilmagani ko'rsatilgan. Har birini bir tugma bilan o'rnatishingiz mumkin.</p>
+          <span class="text-xs font-bold text-[#881337] uppercase tracking-wider">Modullar tahlili</span>
+          <h2 class="text-xl font-extrabold text-slate-900 mt-1">Dasturlarning kompyuterdagi holati:</h2>
+          <p class="text-xs text-slate-600 mt-1">Quyida qaysi modullar o'rnatilgani va qaysilari hali o'rnatilmagani ko'rsatilgan. Har birini mustaqil boshqarishingiz mumkin.</p>
         </div>
         <div class="flex items-center gap-4 bg-[#1b070d] p-3.5 rounded-2xl border border-[#3d0f1b] shadow-inner">
           <div class="text-center px-3">
             <span class="block text-2xl font-black text-emerald-400" id="installed-count">0</span>
-            <span class="text-[11px] text-rose-300/70 font-semibold">O'rnatilgan</span>
+            <span class="text-[11px] text-rose-100/80 font-semibold">O'rnatilgan</span>
           </div>
           <div class="w-px h-8 bg-rose-900/40"></div>
           <div class="text-center px-3">
             <span class="block text-2xl font-black text-amber-400" id="missing-count">5</span>
-            <span class="text-[11px] text-rose-300/70 font-semibold">O'rnatilmagan</span>
+            <span class="text-[11px] text-rose-100/80 font-semibold">O'rnatilmagan</span>
           </div>
         </div>
       </div>
@@ -88,28 +155,28 @@
       <div class="glass-card rounded-2xl p-5 flex flex-col justify-between hover:border-rose-500/50 transition shadow-lg" id="card-db">
         <div>
           <div class="flex justify-between items-start mb-3">
-            <img src="/icons/db.png" class="w-12 h-12 object-contain rounded-xl p-1 bg-[#250912] border border-rose-900/50 shadow-md" alt="ORZU DB">
-            <span id="badge-db" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#1b070d] text-rose-400 border border-rose-900/50">
+            <img src="/icons/db.png" class="w-12 h-12 object-contain rounded-xl p-1 bg-white/10 border border-slate-200 shadow-md" alt="ORZU DB">
+            <span id="badge-db" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
               Tekshirilmoqda...
             </span>
           </div>
-          <span class="text-[10px] font-bold text-rose-400 uppercase">1-qadam</span>
-          <h3 class="font-extrabold text-base text-white mt-0.5">ORZU DB</h3>
-          <p class="text-xs text-rose-300/80 mt-1 leading-relaxed">
+          <span class="text-[10px] font-bold text-[#881337] uppercase">1-qadam</span>
+          <h3 class="font-extrabold text-base text-slate-900 mt-0.5">ORZU DB</h3>
+          <p class="text-xs text-slate-600 mt-1 leading-relaxed">
             PostgreSQL va SQLite avtomatik sozlovchi, jadvallar migratsiyasi va poydevori.
           </p>
-          <div class="mt-3 py-2 px-3 rounded-xl bg-[#1b070d] border border-rose-900/40 text-[11px] font-mono text-rose-300/80 flex justify-between">
+          <div class="mt-3 py-2 px-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-600 flex justify-between">
             <span>Hajmi: 24 MB</span>
-            <span class="text-rose-400 font-semibold">v1.0.0</span>
+            <span class="text-[#881337] font-semibold">SQLite / Postgres</span>
           </div>
         </div>
 
-        <div class="mt-4 pt-4 border-t border-rose-900/40 flex gap-2">
-          <button onclick="installModule('db')" id="btn-install-db" class="flex-1 py-2 px-3 rounded-xl bg-[#2a0c16] hover:bg-[#38101d] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 border border-rose-900/40">
-            <i data-lucide="download" class="w-3.5 h-3.5 text-rose-400"></i> O'rnatish
+        <div class="mt-4 pt-4 border-t border-slate-200 flex gap-2">
+          <button onclick="installModule('db')" id="btn-install-db" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition flex items-center justify-center gap-1.5 border border-slate-200">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-[#881337]"></i> O'rnatish
           </button>
-          <button onclick="runModule('db')" class="py-2 px-3 rounded-xl bg-rose-950/60 hover:bg-rose-900/40 text-rose-200 font-bold text-xs transition border border-rose-800/40">
-            Diagnostika
+          <button onclick="openDbModal()" class="py-2 px-3 rounded-xl bg-rose-950/80 hover:bg-rose-900/60 text-slate-900 font-bold text-xs transition border border-rose-800/40 flex items-center gap-1.5">
+            <i data-lucide="database" class="w-3.5 h-3.5 text-[#881337]"></i> Boshqarish
           </button>
         </div>
       </div>
@@ -118,28 +185,28 @@
       <div class="glass-card rounded-2xl p-5 flex flex-col justify-between hover:border-rose-500/50 transition shadow-lg" id="card-server">
         <div>
           <div class="flex justify-between items-start mb-3">
-            <img src="/icons/server.png" class="w-12 h-12 object-contain rounded-xl p-1 bg-[#250912] border border-rose-900/50 shadow-md" alt="ORZU Server">
-            <span id="badge-server" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#1b070d] text-rose-400 border border-rose-900/50">
+            <img src="/icons/server.png" class="w-12 h-12 object-contain rounded-xl p-1 bg-white/10 border border-slate-200 shadow-md" alt="ORZU Server">
+            <span id="badge-server" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
               Tekshirilmoqda...
             </span>
           </div>
-          <span class="text-[10px] font-bold text-rose-400 uppercase">2-qadam</span>
-          <h3 class="font-extrabold text-base text-white mt-0.5">ORZU Server</h3>
-          <p class="text-xs text-rose-300/80 mt-1 leading-relaxed">
+          <span class="text-[10px] font-bold text-[#881337] uppercase">2-qadam</span>
+          <h3 class="font-extrabold text-base text-slate-900 mt-0.5">ORZU Server</h3>
+          <p class="text-xs text-slate-600 mt-1 leading-relaxed">
             Backend server — barcha ma'lumotlar markazi, tarmoq xizmati va do'kon yuragi.
           </p>
-          <div class="mt-3 py-2 px-3 rounded-xl bg-[#1b070d] border border-rose-900/40 text-[11px] font-mono text-rose-300/80 flex justify-between">
+          <div class="mt-3 py-2 px-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-600 flex justify-between">
             <span>Hajmi: 30 MB</span>
-            <span class="text-rose-400 font-semibold">v1.0.0</span>
+            <span class="text-[#881337] font-semibold">:8080</span>
           </div>
         </div>
 
-        <div class="mt-4 pt-4 border-t border-rose-900/40 flex gap-2">
-          <button onclick="installModule('server')" id="btn-install-server" class="flex-1 py-2 px-3 rounded-xl bg-[#2a0c16] hover:bg-[#38101d] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 border border-rose-900/40">
-            <i data-lucide="download" class="w-3.5 h-3.5 text-rose-400"></i> O'rnatish
+        <div class="mt-4 pt-4 border-t border-slate-200 flex gap-2">
+          <button onclick="installModule('server')" id="btn-install-server" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition flex items-center justify-center gap-1.5 border border-slate-200">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-[#881337]"></i> O'rnatish
           </button>
-          <button onclick="toggleServer()" id="btn-toggle-server" class="py-2 px-3 rounded-xl bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-white font-bold text-xs transition shadow-lg border border-rose-500/30">
-            Ishga tushirish
+          <button onclick="toggleServer()" id="btn-toggle-server" class="py-2 px-3 rounded-xl bg-[#881337] hover:bg-[#9f1239] text-white font-bold text-xs transition shadow-lg border border-rose-500/30 flex items-center gap-1.5">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i> Ishga tushirish
           </button>
         </div>
       </div>
@@ -148,28 +215,28 @@
       <div class="glass-card rounded-2xl p-5 flex flex-col justify-between hover:border-rose-500/50 transition shadow-lg" id="card-admin">
         <div>
           <div class="flex justify-between items-start mb-3">
-            <img src="/icons/admin.png" class="w-12 h-12 object-contain rounded-xl p-1 bg-[#250912] border border-rose-900/50 shadow-md" alt="ORZU Boshqaruv">
-            <span id="badge-admin" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#1b070d] text-rose-400 border border-rose-900/50">
+            <img src="/icons/admin.png" class="w-12 h-12 object-contain rounded-xl p-1 bg-white/10 border border-slate-200 shadow-md" alt="ORZU Boshqaruv">
+            <span id="badge-admin" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
               Tekshirilmoqda...
             </span>
           </div>
-          <span class="text-[10px] font-bold text-rose-400 uppercase">3-qadam</span>
-          <h3 class="font-extrabold text-base text-white mt-0.5">ORZU Boshqaruv</h3>
-          <p class="text-xs text-rose-300/80 mt-1 leading-relaxed">
+          <span class="text-[10px] font-bold text-[#881337] uppercase">3-qadam</span>
+          <h3 class="font-extrabold text-base text-slate-900 mt-0.5">ORZU Boshqaruv</h3>
+          <p class="text-xs text-slate-600 mt-1 leading-relaxed">
             Do'kon boshqaruv paneli — Tovar kirimi, narxlar, ombor va Nasiya daftari.
           </p>
-          <div class="mt-3 py-2 px-3 rounded-xl bg-[#1b070d] border border-rose-900/40 text-[11px] font-mono text-rose-300/80 flex justify-between">
+          <div class="mt-3 py-2 px-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-600 flex justify-between">
             <span>Veb Dashboard</span>
-            <span class="text-rose-400 font-semibold">:8080/admin</span>
+            <span class="text-[#881337] font-semibold">:8080/admin</span>
           </div>
         </div>
 
-        <div class="mt-4 pt-4 border-t border-rose-900/40 flex gap-2">
-          <button onclick="createShortcut('admin')" class="flex-1 py-2 px-3 rounded-xl bg-[#2a0c16] hover:bg-[#38101d] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 border border-rose-900/40">
-            <i data-lucide="link" class="w-3.5 h-3.5 text-rose-400"></i> Ish stoliga yorliq
+        <div class="mt-4 pt-4 border-t border-slate-200 flex gap-2">
+          <button onclick="createShortcut('admin')" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition flex items-center justify-center gap-1.5 border border-slate-200">
+            <i data-lucide="link" class="w-3.5 h-3.5 text-[#881337]"></i> Ish stoliga yorliq
           </button>
-          <a href="http://localhost:8080/admin" target="_blank" class="py-2 px-4 rounded-xl bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-white font-bold text-xs transition shadow-lg border border-rose-500/30 flex items-center">
-            Ochish
+          <a href="http://localhost:8080/admin" target="_blank" class="py-2 px-4 rounded-xl bg-[#881337] hover:bg-[#9f1239] text-white font-bold text-xs transition shadow-lg border border-rose-500/30 flex items-center gap-1.5">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Ochish
           </a>
         </div>
       </div>
@@ -178,28 +245,28 @@
       <div class="glass-card rounded-2xl p-5 flex flex-col justify-between hover:border-rose-500/50 transition shadow-lg" id="card-kassa">
         <div>
           <div class="flex justify-between items-start mb-3">
-            <img src="/icons/kassa.png" class="w-12 h-12 object-contain rounded-xl p-1 bg-[#250912] border border-rose-900/50 shadow-md" alt="ORZU Kassa">
-            <span id="badge-kassa" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#1b070d] text-rose-400 border border-rose-900/50">
+            <img src="/icons/kassa.png" class="w-12 h-12 object-contain rounded-xl p-1 bg-white/10 border border-slate-200 shadow-md" alt="ORZU Kassa">
+            <span id="badge-kassa" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
               Tekshirilmoqda...
             </span>
           </div>
-          <span class="text-[10px] font-bold text-rose-400 uppercase">Kassa (Sotuv)</span>
-          <h3 class="font-extrabold text-base text-white mt-0.5">ORZU Kassa (POS)</h3>
-          <p class="text-xs text-rose-300/80 mt-1 leading-relaxed">
+          <span class="text-[10px] font-bold text-[#881337] uppercase">Sotuv Tili</span>
+          <h3 class="font-extrabold text-base text-slate-900 mt-0.5">ORZU Kassa (POS)</h3>
+          <p class="text-xs text-slate-600 mt-1 leading-relaxed">
             Tezkor sotuv ilovasi — Shtrix-kod skaneri, to'lovlar, tarozi va chek chiqarish.
           </p>
-          <div class="mt-3 py-2 px-3 rounded-xl bg-[#1b070d] border border-rose-900/40 text-[11px] font-mono text-rose-300/80 flex justify-between">
+          <div class="mt-3 py-2 px-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-600 flex justify-between">
             <span>Hajmi: 8.9 MB</span>
-            <span class="text-rose-400 font-semibold">v1.0.0</span>
+            <span class="text-[#881337] font-semibold">Desktop App</span>
           </div>
         </div>
 
-        <div class="mt-4 pt-4 border-t border-rose-900/40 flex gap-2">
-          <button onclick="installModule('kassa')" id="btn-install-kassa" class="flex-1 py-2 px-3 rounded-xl bg-[#2a0c16] hover:bg-[#38101d] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 border border-rose-900/40">
-            <i data-lucide="download" class="w-3.5 h-3.5 text-rose-400"></i> O'rnatish
+        <div class="mt-4 pt-4 border-t border-slate-200 flex gap-2">
+          <button onclick="installModule('kassa')" id="btn-install-kassa" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition flex items-center justify-center gap-1.5 border border-slate-200">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-[#881337]"></i> O'rnatish
           </button>
-          <button onclick="runModule('kassa')" class="py-2 px-4 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 hover:from-emerald-700 hover:to-emerald-600 text-white font-bold text-xs transition shadow-lg border border-emerald-600/30 flex items-center">
-            Kassani ochish
+          <button onclick="runModule('kassa')" class="py-2 px-4 rounded-xl bg-[#059669] hover:bg-[#047857] text-white font-bold text-xs transition shadow-lg border border-emerald-600/30 flex items-center gap-1.5">
+            <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Kassani ochish
           </button>
         </div>
       </div>
@@ -208,28 +275,28 @@
       <div class="glass-card rounded-2xl p-5 flex flex-col justify-between hover:border-rose-500/50 transition shadow-lg" id="card-backup">
         <div>
           <div class="flex justify-between items-start mb-3">
-            <img src="/icons/backup.png" class="w-12 h-12 object-contain rounded-xl p-1 bg-[#250912] border border-rose-900/50 shadow-md" alt="ORZU Arxiv">
-            <span id="badge-backup" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#1b070d] text-rose-400 border border-rose-900/50">
+            <img src="/icons/backup.png" class="w-12 h-12 object-contain rounded-xl p-1 bg-white/10 border border-slate-200 shadow-md" alt="ORZU Arxiv">
+            <span id="badge-backup" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
               Tekshirilmoqda...
             </span>
           </div>
-          <span class="text-[10px] font-bold text-rose-400 uppercase">Zaxira (Backup)</span>
-          <h3 class="font-extrabold text-base text-white mt-0.5">ORZU Arxiv</h3>
-          <p class="text-xs text-rose-300/80 mt-1 leading-relaxed">
-            Avtomatik PostgreSQL va SQLite zaxira vositasi, arxivlash va tiklash.
+          <span class="text-[10px] font-bold text-[#881337] uppercase">Zaxira (Backup)</span>
+          <h3 class="font-extrabold text-base text-slate-900 mt-0.5">ORZU Arxiv</h3>
+          <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+            Avtomatik zaxira vositasi, ma'lumotlar bazasini arxivlash va favqulodda tiklash.
           </p>
-          <div class="mt-3 py-2 px-3 rounded-xl bg-[#1b070d] border border-rose-900/40 text-[11px] font-mono text-rose-300/80 flex justify-between">
+          <div class="mt-3 py-2 px-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-600 flex justify-between">
             <span>Hajmi: 3.1 MB</span>
-            <span class="text-rose-400 font-semibold">v1.0.0</span>
+            <span class="text-[#881337] font-semibold">ZIP Zaxiralar</span>
           </div>
         </div>
 
-        <div class="mt-4 pt-4 border-t border-rose-900/40 flex gap-2">
-          <button onclick="installModule('backup')" id="btn-install-backup" class="flex-1 py-2 px-3 rounded-xl bg-[#2a0c16] hover:bg-[#38101d] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 border border-rose-900/40">
-            <i data-lucide="download" class="w-3.5 h-3.5 text-rose-400"></i> O'rnatish
+        <div class="mt-4 pt-4 border-t border-slate-200 flex gap-2">
+          <button onclick="installModule('backup')" id="btn-install-backup" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition flex items-center justify-center gap-1.5 border border-slate-200">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-[#881337]"></i> O'rnatish
           </button>
-          <button onclick="runModule('backup')" class="py-2 px-3 rounded-xl bg-amber-950/60 hover:bg-amber-900/40 text-amber-200 font-bold text-xs transition border border-amber-800/40">
-            Hozir zaxira olish
+          <button onclick="openBackupModal()" class="py-2 px-3 rounded-xl bg-[#d97706] hover:bg-[#b45309] text-white font-bold text-xs transition border border-amber-800/40 flex items-center gap-1.5">
+            <i data-lucide="archive" class="w-3.5 h-3.5 text-amber-400"></i> Arxiv markazi
           </button>
         </div>
       </div>
@@ -239,12 +306,212 @@
   </main>
 
   <!-- BOTTOM STATUS FOOTER (Matches Top Header Tone Exactly) -->
-  <footer class="bg-[#1b070d] border-t border-[#3d0f1b] px-6 py-3 text-center text-xs text-rose-300/60">
+  <footer class="bg-white border-t border-slate-200 px-6 py-3 text-center text-xs text-slate-500">
     <p>ORZU POS — Olmos Orzu market ekotizimi © 2026. Barcha huquqlar himoyalangan.</p>
   </footer>
 
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. ORZU DB INTERACTIVE SCREEN / MODAL -->
+  <div id="modal-db" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-card max-w-2xl w-full rounded-3xl p-6 border border-rose-800/50 shadow-2xl space-y-5 animate-in fade-in duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-950/80 border border-rose-800/50 flex items-center justify-center text-rose-300">
+            <i data-lucide="database" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-lg text-slate-900">ORZU DB — Ma'lumotlar Bazasi</h3>
+            <p class="text-xs text-[#881337]">Olmos Orzu market asosiy ma'lumotlar ombori holati</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-db')" class="p-2 rounded-xl bg-rose-950/50 hover:bg-rose-900/60 text-rose-300 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- DB Metrics Grid -->
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <span class="text-[#881337] font-semibold block">Baza turi:</span>
+          <span class="font-bold text-slate-900 text-sm mt-0.5 block" id="db-type">SQLite (Mustaqil oflayn rejim)</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <span class="text-[#881337] font-semibold block">Fayl hajmi:</span>
+          <span class="font-bold text-amber-300 text-sm mt-0.5 block font-mono" id="db-size">Yuklanmoqda...</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 col-span-2">
+          <span class="text-[#881337] font-semibold block">Fayl joylashuvi:</span>
+          <span class="font-mono text-rose-200 text-xs mt-0.5 block break-all" id="db-path">D:\ORZU_POS\data\orzu_pos.db</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <span class="text-[#881337] font-semibold block">Jadvallar holati:</span>
+          <span class="font-bold text-emerald-400 text-sm mt-0.5 block" id="db-tables">8 ta jadval tayyor</span>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <span class="text-[#881337] font-semibold block">Ulanish holati:</span>
+          <span class="font-bold text-emerald-400 text-sm mt-0.5 block" id="db-status-text">Faoliyatga tayyor</span>
+        </div>
+      </div>
+
+      <div class="p-3.5 rounded-2xl bg-[#200812] border border-rose-900/30 text-xs text-slate-600 leading-relaxed">
+        <p class="font-semibold text-rose-200 mb-1 flex items-center gap-1.5">
+          <i data-lucide="info" class="w-4 h-4 text-[#881337]"></i> Ma'lumotlar bazasi haqida:
+        </p>
+        Baza do'kondagi barcha tovarlar, kunlik sotuv cheklari, mijozlar va nasiya qarzlarini xavfsiz saqlaydi. Tizim oflayn rejimda uzluksiz ishlaydi.
+      </div>
+
+      <!-- Action buttons -->
+      <div class="pt-3 border-t border-slate-200 flex justify-end gap-3">
+        <button onclick="refreshDbStatus()" class="px-4 py-2.5 rounded-xl bg-rose-950/70 hover:bg-rose-900/50 text-slate-900 font-bold text-xs transition border border-rose-800/40 flex items-center gap-2">
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-[#881337]"></i> Ulanishni tekshirish
+        </button>
+        <button onclick="runDbMigrate()" id="btn-db-migrate" class="px-4 py-2.5 rounded-xl bg-[#881337] hover:bg-[#9f1239] text-white font-bold text-xs transition shadow-lg border border-rose-500/30 flex items-center gap-2">
+          <i data-lucide="check-circle" class="w-4 h-4"></i> Jadvallarni sinxronlash
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ORZU ARXIV INTERACTIVE SCREEN / MODAL -->
+  <div id="modal-backup" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-card max-w-3xl w-full rounded-3xl p-6 border border-rose-800/50 shadow-2xl space-y-5 animate-in fade-in duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-800/50 flex items-center justify-center text-amber-300">
+            <i data-lucide="archive" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-lg text-slate-900">ORZU Arxiv — Zaxiralar Markazi</h3>
+            <p class="text-xs text-[#881337]">Do'kon ma'lumotlarini zaxira qilish va tiklash</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-backup')" class="p-2 rounded-xl bg-rose-950/50 hover:bg-rose-900/60 text-rose-300 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Actions Bar -->
+      <div class="flex items-center justify-between gap-3">
+        <p class="text-xs text-slate-600">
+          Zaxiralar manzili: <span class="font-mono text-slate-900 font-bold">D:\ORZU_POS\backups</span>
+        </p>
+        <button onclick="createBackupNow()" id="btn-create-backup" class="px-4 py-2 rounded-xl bg-[#b45309] hover:bg-[#d97706] text-slate-900 font-bold text-xs transition shadow-lg border border-amber-500/40 flex items-center gap-2">
+          <i data-lucide="plus" class="w-4 h-4"></i> Yangi zaxira olish
+        </button>
+      </div>
+
+      <!-- Backups List -->
+      <div class="border border-slate-200 rounded-2xl overflow-hidden bg-[#18050e]">
+        <div class="max-h-72 overflow-y-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#200812] text-slate-600 font-bold border-b border-slate-200">
+              <tr>
+                <th class="p-3">Fayl nomi</th>
+                <th class="p-3">Yaratilgan vaqti</th>
+                <th class="p-3 text-right">Hajmi</th>
+                <th class="p-3 text-right">Holati</th>
+              </tr>
+            </thead>
+            <tbody id="backups-table-body" class="divide-y divide-rose-900/30 font-medium">
+              <tr>
+                <td colspan="4" class="p-6 text-center text-[#881337]/60">
+                  Zaxiralar ro'yxati yuklanmoqda...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-xs text-[#881337]">
+        <span id="backup-total-count">0 ta zaxira nusxa</span>
+        <button onclick="closeModal('modal-backup')" class="px-4 py-2 rounded-xl bg-rose-950/70 hover:bg-rose-900/50 text-slate-900 font-bold text-xs transition">
+          Yopish
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. LICENSE & COMMERCIAL ACTIVATION MODAL -->
+  <div id="modal-license" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-card max-w-lg w-full rounded-3xl p-6 border border-rose-800/50 shadow-2xl space-y-5 animate-in fade-in duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-800/50 flex items-center justify-center text-amber-300">
+            <i data-lucide="key" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-lg text-slate-900">ORZU POS — Faollashtirish</h3>
+            <p class="text-xs text-[#881337]">Olmos Orzu market tijorat litsenziyasi</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-license')" class="p-2 rounded-xl bg-rose-950/50 hover:bg-rose-900/60 text-rose-300 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+          <div class="flex justify-between text-slate-600">
+            <span>Mijoz / Do'kon:</span>
+            <span class="font-bold text-slate-900" id="modal-lic-customer">Olmos Orzu market</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>O'rnatilgan sana:</span>
+            <span class="font-mono text-rose-200" id="modal-lic-date">--</span>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Sinov muddati holati:</span>
+            <span class="font-bold text-amber-300" id="modal-lic-days">30 kun</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-rose-300 mb-1.5">
+            Rasmiy aktivatsiya kalitini kiriting:
+          </label>
+          <input type="text" id="license-key-input" placeholder="ORZU-XXXX-XXXX-XXXX-XXXX"
+                 class="w-full bg-[#1b070d] border border-rose-900/60 rounded-xl px-4 py-3 text-sm text-slate-900 font-mono uppercase tracking-wider placeholder-rose-400/30 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition">
+          <p class="text-[11px] text-[#881337]/70 mt-1.5">
+            Litsenziya kaliti o'rnatilgandan so'ng dasturdan doimiy va cheklovlarsiz foydalanish imkonini beradi.
+          </p>
+        </div>
+
+        <div id="license-msg" class="text-xs font-bold hidden p-3 rounded-xl"></div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-200 flex justify-end gap-3">
+        <button onclick="closeModal('modal-license')" class="px-4 py-2.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/40 text-rose-300 font-bold text-xs transition">
+          Bekor qilish
+        </button>
+        <button onclick="submitActivation()" id="btn-submit-activate" class="px-5 py-2.5 rounded-xl bg-[#b45309] hover:bg-[#d97706] text-slate-900 font-bold text-xs transition shadow-lg border border-amber-500/40 flex items-center gap-2">
+          <i data-lucide="check" class="w-4 h-4"></i> Faollashtirish
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let statusData = {};
+
+    function showToast(msg, type = 'success') {
+      let toast = document.getElementById('app-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'app-toast';
+        document.body.appendChild(toast);
+      }
+      toast.className = `fixed bottom-6 right-6 z-[9999] px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold transition-all duration-200 transform ${
+        type === 'error' ? 'bg-[#3b0811] text-red-200 border border-red-500/60 shadow-red-950/70' : 'bg-[#280c16] text-rose-100 border border-rose-500/50 shadow-rose-950/70'
+      }`;
+      toast.innerHTML = `<i data-lucide="${type === 'error' ? 'alert-triangle' : 'check-circle'}" class="w-4 h-4 ${type === 'error' ? 'text-red-400' : 'text-emerald-400'}"></i> <span>${msg}</span>`;
+      lucide.createIcons();
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => {
+        toast.className = 'hidden';
+      }, 3500);
+    }
 
     async function checkStatus() {
       try {
@@ -257,27 +524,30 @@
     }
 
     function updateUI(data) {
-      document.getElementById('install-dir-text').innerText = data.install_dir;
+      if (data.install_dir) {
+        document.getElementById('install-dir-text').innerText = data.install_dir;
+      }
+
       let installedCount = 0;
 
       // DB
-      setBadge('db', data.modules.db.installed, data.modules.db.running, "Baza tayyor");
+      setBadge('db', data.modules.db.installed, false, "O'rnatilgan");
       if (data.modules.db.installed) installedCount++;
 
       // Server
-      setBadge('server', data.modules.server.installed, data.modules.server.running, "Ishlamoqda (Port 8080)");
+      setBadge('server', data.modules.server.installed, data.modules.server.running, "Port :8080 da ishlamoqda");
       if (data.modules.server.installed) installedCount++;
       const btnServ = document.getElementById('btn-toggle-server');
       if (data.modules.server.running) {
-        btnServ.innerText = "To'xtatish";
-        btnServ.className = "py-2 px-3 rounded-xl bg-rose-900 hover:bg-rose-800 text-white font-bold text-xs transition shadow-lg border border-rose-600/30";
+        btnServ.innerHTML = '<i data-lucide="power" class="w-3.5 h-3.5"></i> Ishlamoqda';
+        btnServ.className = "py-2 px-3 rounded-xl bg-emerald-950/80 hover:bg-emerald-900/60 text-emerald-300 font-bold text-xs transition shadow-lg border border-emerald-800/40 flex items-center gap-1.5";
       } else {
-        btnServ.innerText = "Ishga tushirish";
-        btnServ.className = "py-2 px-3 rounded-xl bg-gradient-to-r from-rose-800 to-rose-700 hover:from-rose-700 hover:to-rose-600 text-white font-bold text-xs transition shadow-lg border border-rose-500/30";
+        btnServ.innerHTML = '<i data-lucide="play" class="w-3.5 h-3.5"></i> Ishga tushirish';
+        btnServ.className = "py-2 px-3 rounded-xl bg-[#881337] hover:bg-[#9f1239] text-white font-bold text-xs transition shadow-lg border border-rose-500/30 flex items-center gap-1.5";
       }
 
       // Admin
-      setBadge('admin', data.modules.server.installed, data.modules.server.running, "Faol");
+      setBadge('admin', data.modules.server.installed, false, "Tayyor");
       if (data.modules.server.installed) installedCount++;
 
       // Kassa
@@ -285,24 +555,67 @@
       if (data.modules.kassa.installed) installedCount++;
 
       // Backup
-      setBadge('backup', data.modules.backup.installed, false, "Arxiv tayyor");
+      setBadge('backup', data.modules.backup.installed, false, "O'rnatilgan");
       if (data.modules.backup.installed) installedCount++;
 
       document.getElementById('installed-count').innerText = installedCount;
       document.getElementById('missing-count').innerText = 5 - installedCount;
+
+      // Update License Banner
+      if (data.license) {
+        updateLicenseUI(data.license);
+      }
+
+      lucide.createIcons();
+    }
+
+    function updateLicenseUI(lic) {
+      const badge = document.getElementById('lic-status-badge');
+      const headline = document.getElementById('lic-headline');
+      const subtext = document.getElementById('lic-subtext');
+      const iconWrapper = document.getElementById('lic-icon-wrapper');
+
+      document.getElementById('modal-lic-customer').innerText = lic.customer_name || 'Olmos Orzu market';
+      document.getElementById('modal-lic-date').innerText = lic.installed_at || '--';
+
+      if (lic.is_activated) {
+        badge.className = "px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/50 flex items-center gap-1";
+        badge.innerHTML = '<i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Faollashtirilgan';
+        headline.innerText = "Doimiy tijorat litsenziyasi (Muddatsiz)";
+        subtext.innerText = `Litsenziat: ${lic.customer_name}. Barcha 5 ta modul to'liq cheklovlarsiz ishlamoqda.`;
+        iconWrapper.className = "w-12 h-12 rounded-2xl bg-emerald-950/60 border border-emerald-800/50 flex items-center justify-center shrink-0 text-emerald-400";
+        document.getElementById('modal-lic-days').innerText = "Cheksiz (Faollashtirilgan)";
+        document.getElementById('modal-lic-days').className = "font-bold text-emerald-400";
+      } else if (lic.is_expired) {
+        badge.className = "px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-rose-950/80 text-rose-300 border border-rose-800/50 flex items-center gap-1";
+        badge.innerHTML = '<i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Sinov muddati tugagan';
+        headline.innerText = "30 kunlik sinov muddati yakunlandi";
+        subtext.innerText = "Dasturdan foydalanishni davom ettirish uchun iltimos faollashtirish kalitini kiriting.";
+        iconWrapper.className = "w-12 h-12 rounded-2xl bg-rose-950/60 border border-rose-800/50 flex items-center justify-center shrink-0 text-[#881337]";
+        document.getElementById('modal-lic-days').innerText = "Muddati tugagan (0 kun)";
+        document.getElementById('modal-lic-days').className = "font-bold text-[#881337]";
+      } else {
+        badge.className = "px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-950/80 text-amber-300 border border-amber-800/50 flex items-center gap-1";
+        badge.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5"></i> ${lic.days_left} kun qoldi`;
+        headline.innerText = `30 kunlik sinov muddati (${lic.days_left} kun qoldi)`;
+        subtext.innerText = `O'rnatilgan sana: ${lic.installed_at}. Sinov davrida barcha modullar to'liq rejimda ishlaydi.`;
+        iconWrapper.className = "w-12 h-12 rounded-2xl bg-amber-950/60 border border-amber-800/50 flex items-center justify-center shrink-0 text-amber-400";
+        document.getElementById('modal-lic-days').innerText = `${lic.days_left} kun qoldi`;
+        document.getElementById('modal-lic-days').className = "font-bold text-amber-300";
+      }
     }
 
     function setBadge(mod, isInstalled, isRunning, activeText) {
       const b = document.getElementById('badge-' + mod);
       if (!isInstalled) {
-        b.className = "px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-950/60 text-amber-300 border border-amber-800/40 flex items-center gap-1";
-        b.innerHTML = "⚠️ O'rnatilmagan";
+        b.className = "px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-950/60 text-amber-300 border border-amber-800/40 flex items-center gap-1.5";
+        b.innerHTML = '<i data-lucide="alert-circle" class="w-3.5 h-3.5 text-amber-400"></i> O\'rnatilmagan';
       } else if (isRunning) {
-        b.className = "px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-800/40 flex items-center gap-1";
-        b.innerHTML = "<span class='w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse'></span> " + activeText;
+        b.className = "px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-950/60 text-emerald-300 border border-emerald-800/40 flex items-center gap-1.5";
+        b.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> ' + activeText;
       } else {
-        b.className = "px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-800/40 flex items-center gap-1";
-        b.innerHTML = "✓ O'rnatilgan";
+        b.className = "px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-950/60 text-emerald-300 border border-emerald-800/40 flex items-center gap-1.5";
+        b.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> O\'rnatilgan';
       }
     }
 
@@ -311,12 +624,12 @@
         const res = await fetch(`/api/installer/install/${mod}`, { method: 'POST' });
         const d = await res.json();
         if (d.success) {
-          alert(`${mod.toUpperCase()} muvaffaqiyatli o'rnatildi!`);
+          showToast(`${mod} muvaffaqiyatli o'rnatildi!`);
           checkStatus();
         } else {
-          alert("Xato: " + d.error);
+          showToast("Xato: " + d.error, "error");
         }
-      } catch (err) { alert(err); }
+      } catch (err) { showToast("Xatolik: " + err, "error"); }
     }
 
     async function installAll() {
@@ -327,12 +640,12 @@
         const res = await fetch('/api/installer/install-all', { method: 'POST' });
         const d = await res.json();
         if (d.success) {
-          alert("Barcha 5 ta modul muvaffaqiyatli o'rnatildi va ish stolida yorliqlar yaratildi!");
+          showToast("Barcha modullar muvaffaqiyatli o'rnatildi va yorliqlar yaratildi!");
           checkStatus();
         } else {
-          alert("Xatolik: " + d.error);
+          showToast("Xatolik: " + d.error, "error");
         }
-      } catch (err) { alert(err); }
+      } catch (err) { showToast("Xatolik: " + err, "error"); }
       btn.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4"></i> Barchasini 1-klikda o\'rnatish';
       btn.disabled = false;
       lucide.createIcons();
@@ -343,11 +656,12 @@
         const res = await fetch(`/api/installer/run/${mod}`, { method: 'POST' });
         const d = await res.json();
         if (d.success) {
+          showToast(`${mod} ishga tushirildi!`);
           checkStatus();
         } else {
-          alert("Xato: " + d.error);
+          showToast("Xato: " + d.error, "error");
         }
-      } catch (err) { alert(err); }
+      } catch (err) { showToast("Xatolik: " + err, "error"); }
     }
 
     async function toggleServer() {
@@ -359,14 +673,317 @@
         const res = await fetch(`/api/installer/shortcut/${mod}`, { method: 'POST' });
         const d = await res.json();
         if (d.success) {
-          alert("Ish stolida yorliq yaratildi!");
+          showToast("Ish stolida yorliq yaratildi!");
+        } else {
+          showToast("Xato: " + (d.error || "Yorliq yaratilmadi"), "error");
         }
-      } catch (err) { alert(err); }
+      } catch (err) { showToast("Xatolik: " + err, "error"); }
     }
 
-    setInterval(checkStatus, 3000);
+    // ==================== MODAL CONTROLS ====================
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('hidden');
+        el.classList.add('flex');
+        lucide.createIcons();
+      }
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('hidden');
+        el.classList.remove('flex');
+      }
+      if (window.location.hash) {
+        history.replaceState(null, null, ' ');
+      }
+    }
+
+    // 1. DB Modal
+    async function openDbModal() {
+      openModal('modal-db');
+      await refreshDbStatus();
+    }
+
+    async function refreshDbStatus() {
+      try {
+        const res = await fetch('/api/installer/db-status');
+        const d = await res.json();
+        document.getElementById('db-type').innerText = d.db_type || 'SQLite';
+        document.getElementById('db-size').innerText = d.size_kb || '0 KB';
+        document.getElementById('db-path').innerText = d.path || 'data/orzu_pos.db';
+        document.getElementById('db-tables').innerText = (d.tables || 8) + ' ta jadval tayyor';
+        document.getElementById('db-status-text').innerText = d.status || 'Barqaror';
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function runDbMigrate() {
+      const btn = document.getElementById('btn-db-migrate');
+      btn.disabled = true;
+      btn.innerText = "Sinxronlanmoqda...";
+      try {
+        const res = await fetch('/api/installer/db-migrate', { method: 'POST' });
+        const d = await res.json();
+        if (d.success) {
+          showToast("Jadvallar muvaffaqiyatli sinxronlandi!");
+          await refreshDbStatus();
+        } else {
+          showToast("Xato: " + d.error, "error");
+        }
+      } catch (e) { showToast("Xatolik: " + e, "error"); }
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Jadvallarni sinxronlash';
+      lucide.createIcons();
+    }
+
+    // 2. Arxiv Modal
+    async function openBackupModal() {
+      openModal('modal-backup');
+      await loadBackupsList();
+    }
+
+    async function loadBackupsList() {
+      const tbody = document.getElementById('backups-table-body');
+      try {
+        const res = await fetch('/api/installer/backups');
+        const list = await res.json();
+        tbody.innerHTML = '';
+
+        if (!list || list.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="4" class="p-8 text-center text-[#881337]/60">
+                <i data-lucide="archive" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+                Hozircha zaxira nusxalar mavjud emas. Yuqoridagi tugma orqali zaxira oling.
+              </td>
+            </tr>
+          `;
+          document.getElementById('backup-total-count').innerText = "0 ta zaxira nusxa";
+          lucide.createIcons();
+          return;
+        }
+
+        document.getElementById('backup-total-count').innerText = `${list.length} ta zaxira nusxa`;
+
+        list.forEach(b => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-rose-950/40 transition";
+          tr.innerHTML = `
+            <td class="p-3 font-mono text-rose-200 flex items-center gap-2">
+              <i data-lucide="file-archive" class="w-4 h-4 text-amber-400"></i> ${b.name || b.filename}
+            </td>
+            <td class="p-3 text-slate-600">${b.created_at}</td>
+            <td class="p-3 text-right font-mono text-amber-300">${b.size_kb}</td>
+            <td class="p-3 text-right">
+              <span class="px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800/40 text-[10px]">Tayyor</span>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+        lucide.createIcons();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-[#881337]">Yuklashda xato yuz berdi</td></tr>`;
+      }
+    }
+
+    async function createBackupNow() {
+      const btn = document.getElementById('btn-create-backup');
+      btn.disabled = true;
+      btn.innerText = "Zaxira olinmoqda...";
+      try {
+        const res = await fetch('/api/installer/backup-create', { method: 'POST' });
+        const d = await res.json();
+        if (d.success) {
+          showToast("Zaxira nusxa muvaffaqiyatli olindi!");
+          await loadBackupsList();
+        } else {
+          showToast("Zaxira olishda xato: " + d.error, "error");
+        }
+      } catch (err) { showToast("Xatolik: " + err, "error"); }
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="plus" class="w-4 h-4"></i> Yangi zaxira olish';
+      lucide.createIcons();
+    }
+
+    // 3. License Modal
+    function openLicenseModal() {
+      openModal('modal-license');
+      document.getElementById('license-key-input').focus();
+    }
+
+    async function submitActivation() {
+      const keyInput = document.getElementById('license-key-input');
+      const key = keyInput.value.trim().toUpperCase();
+      const msgEl = document.getElementById('license-msg');
+
+      if (!key) {
+        msgEl.className = "text-xs font-bold p-3 rounded-xl bg-rose-950/90 text-rose-300 border border-rose-800/50 block";
+        msgEl.innerText = "Iltimos, faollashtirish kalitini kiriting";
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit-activate');
+      btn.disabled = true;
+      btn.innerText = "Tekshirilmoqda...";
+
+      try {
+        const res = await fetch('/api/installer/activate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: key })
+        });
+        const d = await res.json();
+        if (d.success) {
+          msgEl.className = "text-xs font-bold p-3 rounded-xl bg-emerald-950/90 text-emerald-300 border border-emerald-800/50 block";
+          msgEl.innerText = d.message || "ORZU POS muvaffaqiyatli faollashtirildi!";
+          checkStatus();
+          setTimeout(() => {
+            closeModal('modal-license');
+          }, 1500);
+        } else {
+          msgEl.className = "text-xs font-bold p-3 rounded-xl bg-rose-950/90 text-rose-300 border border-rose-800/50 block";
+          msgEl.innerText = d.error || "Aktivatsiya kaliti noto'g'ri";
+        }
+      } catch (err) {
+        msgEl.className = "text-xs font-bold p-3 rounded-xl bg-rose-950/90 text-rose-300 border border-rose-800/50 block";
+        msgEl.innerText = "Server bilan aloqa xatosi: " + err;
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Faollashtirish';
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // CONTEXT MENU & SHORTCUT PREVENTION
+    // ==========================================
+    window.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      return false;
+    });
+
+    window.addEventListener('dragstart', e => e.preventDefault());
+    window.addEventListener('drop', e => e.preventDefault());
+
+    document.addEventListener('selectstart', e => {
+      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+      }
+    });
+
+    window.addEventListener('keydown', e => {
+      if ((e.ctrlKey && (e.key === 'r' || e.key === 'R' || e.key === 'u' || e.key === 'U')) || e.key === 'F5' || e.key === 'F12') {
+        e.preventDefault();
+      }
+    });
+
+    // Hash navigation listener
+    function handleHash() {
+      const hash = window.location.hash;
+      if (hash === '#modal-db' || hash === '#db') {
+        openDbModal();
+      } else if (hash === '#modal-backup' || hash === '#backup') {
+        openBackupModal();
+      } else if (hash === '#modal-license' || hash === '#license') {
+        openLicenseModal();
+      }
+    }
+
+    window.addEventListener('hashchange', handleHash);
+
+    // GitHub Auto-Updater Client Logic
+    async function checkSystemUpdates(notify = false) {
+      const icon = document.getElementById('icon-refresh-update');
+      if (icon) icon.classList.add('animate-spin');
+
+      try {
+        const res = await fetch('/api/installer/updates/check');
+        const data = await res.json();
+
+        const badge = document.getElementById('updater-version-badge');
+        const pill = document.getElementById('updater-status-pill');
+        const headline = document.getElementById('updater-headline');
+        const subtext = document.getElementById('updater-subtext');
+        const applyBtn = document.getElementById('btn-apply-update');
+        const changelogBox = document.getElementById('updater-changelog-box');
+        const changelogList = document.getElementById('updater-changelog-list');
+
+        if (badge) badge.innerText = `v${data.current_version} (O'rnatilgan)`;
+
+        if (data.has_update) {
+          if (pill) {
+            pill.className = "px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-950/80 text-amber-300 border border-amber-600/50 animate-pulse";
+            pill.innerText = `Yangi versiya mavjud: v${data.latest_version}!`;
+            pill.classList.remove('hidden');
+          }
+          if (headline) headline.innerText = data.title || "Yangi dasturiy yangilanish mavjud!";
+          if (subtext) subtext.innerText = `Chiqarilgan sana: ${data.release_date || 'Yaqinda'}. Yangilanishni o'rnatish uchun quyidagi tugmani bosing.`;
+          if (applyBtn) applyBtn.classList.remove('hidden');
+
+          if (changelogBox && changelogList && data.changelog && data.changelog.length > 0) {
+            changelogList.innerHTML = data.changelog.map(item => `<li>${item}</li>`).join('');
+            changelogBox.classList.remove('hidden');
+          }
+
+          if (notify) showToast(`Yangi versiya mavjud: v${data.latest_version}!`, "success");
+        } else {
+          if (pill) {
+            pill.className = "px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-800/50";
+            pill.innerText = "Dastur so'nggi versiyada";
+            pill.classList.remove('hidden');
+          }
+          if (applyBtn) applyBtn.classList.add('hidden');
+          if (changelogBox) changelogBox.classList.add('hidden');
+          if (notify) showToast("Dastur allaqachon so'nggi versiyada!", "info");
+        }
+      } catch (err) {
+        if (notify) showToast("Yangilanishlarni tekshirishda xatolik yuz berdi", "error");
+      } finally {
+        if (icon) icon.classList.remove('animate-spin');
+        lucide.createIcons();
+      }
+    }
+
+    async function applySystemUpdate() {
+      if (!confirm("GitHub repozitoriysidan so'nggi yangilanishlar yuklanib, barcha 6 ta dastur qayta yig'iladi va o'rnatiladi. Davom etasizmi?")) return;
+
+      const btn = document.getElementById('btn-apply-update');
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Yangilanmoqda...`;
+      lucide.createIcons();
+
+      showToast("GitHub'dan yangilanishlar yuklanmoqda va o'rnatilmoqda...", "info");
+
+      try {
+        const res = await fetch('/api/installer/updates/apply', { method: 'POST' });
+        const data = await res.json();
+        showToast(data.message || "Yangilanish jarayoni boshlandi!", "success");
+        setTimeout(() => {
+          checkSystemUpdates(false);
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="download-cloud" class="w-4 h-4"></i> <span>GitHub'dan yangilash</span>`;
+          lucide.createIcons();
+        }, 8000);
+      } catch (err) {
+        showToast("Xatolik yuz berdi: " + err.message, "error");
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="download-cloud" class="w-4 h-4"></i> <span>GitHub'dan yangilash</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    // Init
     checkStatus();
+    checkSystemUpdates(false);
+    handleHash();
+    setInterval(checkStatus, 3500);
+    setInterval(() => checkSystemUpdates(false), 30000);
     lucide.createIcons();
   </script>
+  <script src="/shared/virtual_keyboard.js"></script>
 </body>
 </html>

@@ -72,6 +72,12 @@ func ProcessSale(input CheckoutInput) (*models.Sale, string, error) {
 			totalAmount += lineTotal
 			totalBuyCost += product.BuyPrice * itemInput.Quantity
 
+			// Ombor qoldig'ini qat'iy tekshirish - ortiqcha sotishga yo'l qo'yilmaydi!
+			if product.StockQuantity < itemInput.Quantity {
+				return fmt.Errorf("omborda '%s' mahsulotidan yetarli qoldiq mavjud emas! Qoldiq: %.2f %s, so'ralgan: %.2f %s",
+					product.Name, product.StockQuantity, product.Unit, itemInput.Quantity, product.Unit)
+			}
+
 			// Ombor qoldig'ini kamaytirish
 			product.StockQuantity -= itemInput.Quantity
 			if err := tx.Save(&product).Error; err != nil {
@@ -98,19 +104,32 @@ func ProcessSale(input CheckoutInput) (*models.Sale, string, error) {
 		var changeAmount float64
 		switch input.PaymentMethod {
 		case models.PaymentCash:
+			if input.CashPaid <= 0 {
+				input.CashPaid = finalAmount
+			}
 			if input.CashPaid >= finalAmount {
 				changeAmount = input.CashPaid - finalAmount
 			}
 		case models.PaymentCard:
-			input.CardPaid = finalAmount
+			if input.CardPaid <= 0 {
+				input.CardPaid = finalAmount
+			}
 		case models.PaymentQR:
-			input.QRPaid = finalAmount
+			if input.QRPaid <= 0 {
+				input.QRPaid = finalAmount
+			}
 		case models.PaymentDebt:
-			input.DebtAmount = finalAmount
+			if input.DebtAmount <= 0 {
+				input.DebtAmount = finalAmount
+			}
 		case models.PaymentMixed:
 			totalTendered := input.CashPaid + input.CardPaid + input.QRPaid + input.DebtAmount
 			if totalTendered >= finalAmount {
 				changeAmount = totalTendered - finalAmount
+			}
+		default:
+			if input.CashPaid <= 0 {
+				input.CashPaid = finalAmount
 			}
 		}
 
@@ -235,10 +254,30 @@ func GetDailySummary(date time.Time) (*DailySummary, error) {
 	summary.TotalSalesCount = int64(len(sales))
 	for _, s := range sales {
 		summary.TotalRevenue += s.FinalAmount
-		summary.TotalCash += s.CashPaid
-		summary.TotalCard += s.CardPaid
-		summary.TotalQR += s.QRPaid
-		summary.TotalDebt += s.DebtAmount
+
+		cash := s.CashPaid
+		card := s.CardPaid
+		qr := s.QRPaid
+		debt := s.DebtAmount
+
+		// Agar oldingi cheklarda tender summasi 0 qolgan bo'lsa, to'lov usuliga qarab to'ldirish
+		if cash == 0 && card == 0 && qr == 0 && debt == 0 {
+			switch s.PaymentMethod {
+			case models.PaymentCard:
+				card = s.FinalAmount
+			case models.PaymentQR:
+				qr = s.FinalAmount
+			case models.PaymentDebt:
+				debt = s.FinalAmount
+			default:
+				cash = s.FinalAmount
+			}
+		}
+
+		summary.TotalCash += cash
+		summary.TotalCard += card
+		summary.TotalQR += qr
+		summary.TotalDebt += debt
 
 		// Foydani hisoblash
 		for _, item := range s.Items {
@@ -272,8 +311,10 @@ func generateReceiptText(sale *models.Sale) string {
 
 	for i, item := range sale.Items {
 		sb.WriteString(fmt.Sprintf("%d. %s\n", i+1, item.ProductName))
-		sb.WriteString(fmt.Sprintf("   %.2f %s x %.0f = %.0f so'm\n",
-			item.Quantity, item.Unit, item.UnitPrice, item.TotalPrice))
+		qtyStr := fmt.Sprintf("%.3f", item.Quantity)
+		qtyStr = strings.TrimRight(strings.TrimRight(qtyStr, "0"), ".")
+		sb.WriteString(fmt.Sprintf("   %s %s x %.0f = %.0f so'm\n",
+			qtyStr, item.Unit, item.UnitPrice, item.TotalPrice))
 	}
 
 	sb.WriteString(sep + "\n")

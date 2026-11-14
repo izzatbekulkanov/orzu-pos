@@ -34,7 +34,7 @@ func InitDB() (*gorm.DB, error) {
 			dbURL = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Tashkent",
 				dbHost, dbUser, dbPass, dbName, dbPort)
 		}
-		log.Println("🐘 PostgreSQL bazasiga ulanilmoqda...")
+		log.Println("[PostgreSQL] Bazaga ulanilmoqda...")
 		dialector = postgres.Open(dbURL)
 	} else {
 		// Standart holatda: Pure-Go SQLite (Oflayn va mustaqil rejim)
@@ -43,7 +43,7 @@ func InitDB() (*gorm.DB, error) {
 			return nil, fmt.Errorf("data jildini yaratishda xato: %w", err)
 		}
 		dbPath := filepath.Join(dataDir, "orzu_pos.db")
-		log.Printf("📁 SQLite oflayn bazasiga ulanilmoqda: %s\n", dbPath)
+		log.Printf("[SQLite] Oflayn bazaga ulanilmoqda: %s\n", dbPath)
 		dialector = sqlite.Open(dbPath)
 	}
 
@@ -58,7 +58,7 @@ func InitDB() (*gorm.DB, error) {
 	if err != nil {
 		// Agar PostgreSQL ulanmasa, xavfsiz holda SQLite ga fallback qilamiz
 		if dbType == "postgres" {
-			log.Printf("⚠️ PostgreSQL ulanmadi (%v). Oflayn SQLite bazasiga o'tilmoqda...\n", err)
+			log.Printf("[PostgreSQL] Ulanmadi (%v). Oflayn SQLite bazasiga o'tilmoqda...\n", err)
 			dataDir := getEnv("ORZU_DATA_DIR", "data")
 			_ = os.MkdirAll(dataDir, 0755)
 			dbPath := filepath.Join(dataDir, "orzu_pos.db")
@@ -72,7 +72,7 @@ func InitDB() (*gorm.DB, error) {
 	}
 
 	// Migratsiyalarni amalga oshirish
-	log.Println("🔄 Jadvallar migratsiyasi tekshirilmoqda...")
+	log.Println("[Database] Jadvallar migratsiyasi tekshirilmoqda...")
 	err = db.AutoMigrate(
 		&models.User{},
 		&models.Category{},
@@ -88,7 +88,7 @@ func InitDB() (*gorm.DB, error) {
 	}
 
 	DB = db
-	log.Println("✅ Ma'lumotlar bazasi muvaffaqiyatli ishga tushdi!")
+	log.Println("[Database] Ma'lumotlar bazasi muvaffaqiyatli ishga tushdi.")
 
 	// Boshlang'ich ma'lumotlarni tekshirish va ekish (Seed)
 	seedInitialData(db)
@@ -100,12 +100,19 @@ func seedInitialData(db *gorm.DB) {
 	// 1. Sozlamalar
 	defaultSettings := []models.Setting{
 		{Key: "store_name", Value: "Olmos Orzu market", Description: "Do'kon nomi"},
-		{Key: "store_address", Value: "Namangan viloyati", Description: "Manzil"},
-		{Key: "store_phone", Value: "+998 90 000 00 00", Description: "Telefon raqam"},
+		{Key: "company_name", Value: "Olmos Orzu Savdo MChJ", Description: "Tashkilot / Yuridik nomi"},
+		{Key: "store_owner", Value: "Alisher Usmonov", Description: "Tizim egasi F.I.Sh."},
+		{Key: "director_name", Value: "Rustam Karimov", Description: "Tashkilot rahbari F.I.Sh."},
+		{Key: "store_address", Value: "Namangan viloyati, Yangiqo'rg'on tumani", Description: "Do'kon manzili"},
+		{Key: "store_phone", Value: "+998 (90) 123-45-67", Description: "Telefon raqam"},
 		{Key: "receipt_header", Value: "Olmos Orzu marketiga xush kelibsiz!", Description: "Chek tepasidagi yozuv"},
 		{Key: "receipt_footer", Value: "Xaridingiz uchun rahmat! Yana kutamiz!", Description: "Chek pastidagi yozuv"},
 		{Key: "currency", Value: "so'm", Description: "Valyuta belgisi"},
 		{Key: "tax_percent", Value: "0", Description: "QQS foizi"},
+		{Key: "label_width", Value: "80", Description: "Yorliq qog'ozi kengligi (58 yoki 80 mm)"},
+		{Key: "label_autocut", Value: "true", Description: "Har bir yorliqdan keyin avtomatik qirqish"},
+		{Key: "label_show_store", Value: "true", Description: "Yorliqda do'kon nomini chiqarish"},
+		{Key: "label_show_price", Value: "true", Description: "Yorliqda narxni katta hajmda chiqarish"},
 	}
 	for _, s := range defaultSettings {
 		var existing models.Setting
@@ -125,41 +132,68 @@ func seedInitialData(db *gorm.DB) {
 			FullName:     "Bosh Administrator",
 			Role:         models.RoleAdmin,
 			PIN:          "1234",
+			Phone:        "+998 90 000 00 01",
 			IsActive:     true,
 		}
 		db.Create(&admin)
-		log.Println("👤 Standart admin yaratildi: login: admin, parol: admin123, PIN: 1234")
+		log.Println("[Database] Standart admin yaratildi: login: admin, parol: admin123, PIN: 1234")
 	}
 
-	// 3. Standart kassir foydalanuvchisi
+	// 3. Standart kassirlar (Ko'p kassirli tizim)
 	var cashierCount int64
 	db.Model(&models.User{}).Where("role = ?", models.RoleCashier).Count(&cashierCount)
 	if cashierCount == 0 {
-		hash, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-		cashier := models.User{
+		hash1, _ := bcrypt.GenerateFromPassword([]byte("1111"), bcrypt.DefaultCost)
+		kassir1 := models.User{
 			Username:     "kassir1",
-			PasswordHash: string(hash),
-			FullName:     "Kassir 1",
+			PasswordHash: string(hash1),
+			FullName:     "Dildora Karimova",
 			Role:         models.RoleCashier,
-			PIN:          "0000",
+			PIN:          "1111",
+			Phone:        "+998 90 111 22 33",
 			IsActive:     true,
 		}
-		db.Create(&cashier)
-		log.Println("👤 Standart kassir yaratildi: login: kassir1, parol: 123456, PIN: 0000")
+		db.Create(&kassir1)
+
+		hash2, _ := bcrypt.GenerateFromPassword([]byte("2222"), bcrypt.DefaultCost)
+		kassir2 := models.User{
+			Username:     "kassir2",
+			PasswordHash: string(hash2),
+			FullName:     "Nodir Bekmurodov",
+			Role:         models.RoleCashier,
+			PIN:          "2222",
+			Phone:        "+998 90 222 33 44",
+			IsActive:     true,
+		}
+		db.Create(&kassir2)
+		log.Println("[Database] Kassirlar yaratildi: Dildora Karimova (PIN: 1111), Nodir Bekmurodov (PIN: 2222)")
 	}
 
-	// 4. Standart demo kategoriyalar va mahsulotlar
+	// 4. Standart toifalar va mahsulotlar
+	defaultCats := []models.Category{
+		{Name: "Ichimlik suvi va Ichimliklar", Icon: "cup-soda", Color: "#0284c7"},
+		{Name: "Oziq-ovqat va Baqollik", Icon: "shopping-bag", Color: "#d97706"},
+		{Name: "Dorixona va Salomatlik", Icon: "heart-pulse", Color: "#e11d48"},
+		{Name: "Non va Qandolat", Icon: "croissant", Color: "#f59e0b"},
+		{Name: "Sut va Go'sht mahsulotlari", Icon: "milk", Color: "#10b981"},
+		{Name: "Meva va Sabzavotlar", Icon: "apple", Color: "#84cc16"},
+		{Name: "Maishiy kimyo", Icon: "sparkles", Color: "#8b5cf6"},
+	}
+	for _, c := range defaultCats {
+		var existing models.Category
+		if db.Where("name = ?", c.Name).First(&existing).Error != nil {
+			db.Create(&c)
+		}
+	}
+
 	var prodCount int64
 	db.Model(&models.Product{}).Count(&prodCount)
 	if prodCount == 0 {
-		catBread := models.Category{Name: "Non va qandolat", Icon: "croissant", Color: "#f59e0b"}
-		catDrink := models.Category{Name: "Ichimliklar", Icon: "coffee", Color: "#3b82f6"}
-		catDairy := models.Category{Name: "Sut mahsulotlari", Icon: "milk", Color: "#10b981"}
-		catGrocery := models.Category{Name: "Oziq-ovqat / Baqollik", Icon: "shopping-bag", Color: "#8b5cf6"}
-		db.Create(&catBread)
-		db.Create(&catDrink)
-		db.Create(&catDairy)
-		db.Create(&catGrocery)
+		var catBread, catDrink, catDairy, catGrocery models.Category
+		db.Where("name LIKE ?", "%Non%").First(&catBread)
+		db.Where("name LIKE ?", "%Ichimlik%").First(&catDrink)
+		db.Where("name LIKE ?", "%Sut%").First(&catDairy)
+		db.Where("name LIKE ?", "%Oziq%").First(&catGrocery)
 
 		demoProducts := []models.Product{
 			{Barcode: "4780001234567", Name: "Samarqand noni (dona)", CategoryID: catBread.ID, BuyPrice: 3500, SellPrice: 5000, StockQuantity: 80, Unit: "dona"},
@@ -171,7 +205,37 @@ func seedInitialData(db *gorm.DB) {
 		for _, p := range demoProducts {
 			db.Create(&p)
 		}
-		log.Println("🛒 Boshlang'ich demo tovarlar yuklandi.")
+		log.Println("[Database] Boshlang'ich demo tovarlar yuklandi.")
+	}
+
+	// 4b. Ensure user's barcode 6927291699864 exists
+	var userProd models.Product
+	if err := db.Where("barcode = ?", "6927291699864").First(&userProd).Error; err != nil {
+		var firstCat models.Category
+		db.First(&firstCat)
+		catID := firstCat.ID
+		if catID == 0 {
+			catID = 1
+		}
+		db.Create(&models.Product{
+			Barcode:       "6927291699864",
+			ShortCode:     "1007",
+			Name:          "Skanerlangan Mahsulot 6927291699864",
+			CategoryID:    catID,
+			Location:      "A-1 polka",
+			BuyPrice:      8000,
+			SellPrice:     12000,
+			StockQuantity: 100,
+			Unit:          "dona",
+		})
+	}
+
+	// 4c. Ensure all products have a 4-digit ShortCode
+	var prodsWithoutCode []models.Product
+	db.Where("short_code = '' OR short_code IS NULL").Find(&prodsWithoutCode)
+	for i, p := range prodsWithoutCode {
+		code := fmt.Sprintf("%04d", 1001+i)
+		db.Model(&models.Product{}).Where("id = ?", p.ID).Update("short_code", code)
 	}
 
 	// 5. Standart mijoz (Oddiy xaridor)

@@ -1,0 +1,15 @@
+{
+  "version": "2.2.0",
+  "version_code": 220,
+  "release_date": "2026-11-14",
+  "repo": "izzatbekulkanov/orzu-pos",
+  "branch": "main",
+  "title": "ORZU POS 2.2 — AI Tasvir Generatsiyasi va Smart Boshqaruv",
+  "changelog": [
+    "OpenRouter AI orqali tovarlar rasmini avtomatik generatsiya qilish va oflayn saqlash",
+    "GitHub orqali avtomatik yangilanishlarni tekshirish va o'rnatish tizimi",
+    "Sensor monobloklar uchun 2 bosqichli professional boshqaruv menyusi",
+    "Suriladigan (Drag & Drop) sensor klaviatura tugmasi",
+    "Kassa va admin panellarida PIN kodni ko'rish imkoniyati"
+  ]
+}

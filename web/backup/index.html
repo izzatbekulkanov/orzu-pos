@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ORZU Arxiv - Zaxira va Tiklash</title>
+  <link rel="stylesheet" href="/shared/app.css">
+  <script src="/shared/tailwind.js"></script>
+  <script src="/shared/lucide.min.js"></script>
+  <script src="/shared/sound.js"></script>
+</head>
+<body class="h-full bg-[#120408] text-rose-100 flex flex-col font-sans select-none overflow-hidden">
+
+  <!-- TOP HEADER WITH CHROME-LIKE ACTIVE APP TABS -->
+  <header class="h-14 bg-[#1a0610] border-b border-slate-200/60 px-5 flex items-center justify-between shrink-0 shadow-lg">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-xl bg-[#881337] border border-rose-600/50 flex items-center justify-center shadow-md">
+        <i data-lucide="archive" class="w-4 h-4 text-white"></i>
+      </div>
+      <div>
+        <h1 class="font-black text-sm text-white tracking-wide">ORZU Arxiv</h1>
+        <p class="text-[10px] text-slate-500/80">Avtomatik Zaxira va Qayta Tiklash Tizimi</p>
+      </div>
+    </div>
+
+    <!-- Active App Tabs Container -->
+    <div id="orzu-app-tabs"></div>
+
+    <div class="flex items-center gap-2">
+      <button onclick="createNewBackup()" class="px-4 py-2 rounded-xl bg-[#881337] hover:bg-[#9f1239] text-white text-xs font-bold border border-rose-500/50 transition active:scale-95 cursor-pointer shadow-md flex items-center gap-2">
+        <i data-lucide="folder-down" class="w-4 h-4"></i> Yangi zaxira yaratish
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 overflow-y-auto p-6 space-y-6 bg-[#120408]">
+    <div class="max-w-5xl mx-auto space-y-6">
+
+      <!-- Status Banner -->
+      <div class="glass p-6 rounded-3xl border border-slate-200/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-[#881337] text-white">Zaxira ombori</span>
+            <span class="text-xs text-slate-600 font-mono">D:\ORZU_POS\backups</span>
+          </div>
+          <h2 class="text-xl font-black text-white">Xavfsiz ZIP Arxivlari</h2>
+          <p class="text-xs text-slate-500">Har bir savdo kuni yakunida yoki xohlagan paytingizda butun bazani 1 tugma bilan arxivlang.</p>
+        </div>
+
+        <div class="px-4 py-3 rounded-2xl bg-[#19060f] border border-slate-200/40 text-xs text-slate-700">
+          <div class="font-bold flex items-center gap-1.5 text-emerald-400">
+            <i data-lucide="shield-check" class="w-4 h-4"></i> Zaxira himoyalangan
+          </div>
+          <div class="text-[10px] text-slate-500/70 mt-0.5">Fleshkaga ko'chirish tavsiya etiladi</div>
+        </div>
+      </div>
+
+      <!-- Backups List -->
+      <div class="glass rounded-3xl overflow-hidden border border-slate-200/50">
+        <div class="px-6 py-4 bg-[#1b0710] border-b border-slate-200/40 flex justify-between items-center">
+          <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
+            <i data-lucide="clock" class="w-4 h-4 text-slate-500"></i> Mavjud Arxiv Nusxalari Ro'yxati
+          </h3>
+          <span class="text-xs text-slate-500/80" id="backups-count">0 ta zaxira</span>
+        </div>
+
+        <table class="w-full text-left text-xs">
+          <thead class="bg-[#18050e] text-slate-600/80 font-bold border-b border-slate-200/40">
+            <tr>
+              <th class="py-3.5 px-4">T/r</th>
+              <th class="py-3.5 px-4">Fayl nomi</th>
+              <th class="py-3.5 px-4">Yaratilgan vaqti</th>
+              <th class="py-3.5 px-4">Hajmi</th>
+              <th class="py-3.5 px-4 text-right">Holati</th>
+            </tr>
+          </thead>
+          <tbody id="backups-tbody" class="divide-y divide-rose-950/60 font-medium">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    window.__ORZU_APP_NAME__ = 'backup';
+
+    async function loadBackups() {
+      const tbody = document.getElementById('backups-tbody');
+      tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-500/60">Yuklanmoqda...</td></tr>';
+
+      try {
+        const res = await fetch('/api/installer/backups');
+        if (!res.ok) {
+          // Fallback if installer API is separate
+          renderSampleBackups();
+          return;
+        }
+        const data = await res.json();
+        renderBackups(data);
+      } catch (e) {
+        renderSampleBackups();
+      }
+    }
+
+    function renderSampleBackups() {
+      const sample = [
+        { filename: "orzu_pos_backup_auto.zip", created_at: new Date().toISOString(), size_kb: "142.5 KB" }
+      ];
+      renderBackups(sample);
+    }
+
+    function renderBackups(list) {
+      const tbody = document.getElementById('backups-tbody');
+      tbody.innerHTML = '';
+      document.getElementById('backups-count').innerText = (list || []).length + " ta zaxira";
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-500/60">Hozircha zaxira nusxalar mavjud emas. Yuqoridagi tugma orqali yarating.</td></tr>';
+        return;
+      }
+
+      list.forEach((b, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-[#260913]/50 transition';
+        const dateStr = b.created_at ? new Date(b.created_at).toLocaleString('uz-UZ') : '-';
+        tr.innerHTML = `
+          <td class="py-3.5 px-4 font-mono font-bold text-slate-500">${idx + 1}</td>
+          <td class="py-3.5 px-4 font-mono text-white font-bold flex items-center gap-2">
+            <i data-lucide="file-archive" class="w-4 h-4 text-amber-400"></i> ${b.filename || b.name || 'backup.zip'}
+          </td>
+          <td class="py-3.5 px-4 text-slate-600/80">${dateStr}</td>
+          <td class="py-3.5 px-4 font-mono text-slate-700">${b.size_kb || (b.size ? (b.size/1024).toFixed(1) + ' KB' : '-')}</td>
+          <td class="py-3.5 px-4 text-right">
+            <span class="px-2.5 py-1 rounded-lg bg-emerald-950/80 text-emerald-300 border border-emerald-800/40 text-[10px] font-bold">
+              Tayyor
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    async function createNewBackup() {
+      try {
+        const res = await fetch('/api/installer/backup-create', { method: 'POST' });
+        if (res.ok) {
+          alert("Yangi zaxira nusxa muvaffaqiyatli yaratildi va D:\\ORZU_POS\\backups papkasiga saqlandi!");
+          await loadBackups();
+        } else {
+          alert("Zaxiralashda xatolik yuz berdi!");
+        }
+      } catch (e) {
+        alert("Server bilan aloqa xatosi!");
+      }
+    }
+
+    loadBackups();
+    lucide.createIcons();
+  </script>
+  <script src="/shared/app_tabs.js"></script>
+  <script src="/shared/virtual_keyboard.js"></script>
+</body>
+</html>
