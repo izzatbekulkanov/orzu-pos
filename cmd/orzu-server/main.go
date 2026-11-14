@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
@@ -38,7 +39,31 @@ func main() {
 	// 2. API marshrutlarini sozlash
 	api.SetupRoutes(app)
 
-	// 3. Embedded veb interfeyslarni ulash
+	// 3. Keshni o'chirish middleware (Touch monoblok va brauzerlar har doim yangi fayllarni olishi uchun)
+	app.Use(func(c *fiber.Ctx) error {
+		path := c.Path()
+		if strings.HasPrefix(path, "/shared/") || strings.HasSuffix(path, ".html") || strings.HasSuffix(path, ".js") {
+			c.Set("Cache-Control", "no-cache, no-store, must-revalidate")
+			c.Set("Pragma", "no-cache")
+			c.Set("Expires", "0")
+		}
+		return c.Next()
+	})
+
+	// Mahalliy diskdagi web fayllarni ulash (Jonli yangilanishlar uchun)
+	localWebDirs := []string{`D:\ORZU_POS\web`, `web`}
+	for _, ldir := range localWebDirs {
+		if fi, err := os.Stat(ldir); err == nil && fi.IsDir() {
+			app.Static("/shared", filepath.Join(ldir, "shared"), fiber.Static{
+				Compress:  false,
+				ByteRange: true,
+				MaxAge:    0,
+			})
+			break
+		}
+	}
+
+	// Embedded veb interfeyslarni ulash (Zaxira sifatida)
 	kassaFS, _ := fs.Sub(web.WebFS, "kassa")
 	adminFS, _ := fs.Sub(web.WebFS, "admin")
 	iconsFS, _ := fs.Sub(web.WebFS, "icons")

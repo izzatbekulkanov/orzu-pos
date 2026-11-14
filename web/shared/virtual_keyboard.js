@@ -125,8 +125,8 @@
       z-index: 999999;
       background: #ffffff;
       border-top: 2px solid #cbd5e1;
-      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
-      padding: 6px 14px 10px 14px;
+      box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.2);
+      padding: 8px 18px 14px 18px;
       font-family: inherit;
       user-select: none;
       -webkit-user-select: none;
@@ -139,27 +139,27 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       border-bottom: 1px solid #e2e8f0;
       background: #f8fafc;
-      padding: 4px 8px;
-      border-radius: 8px;
+      padding: 6px 12px;
+      border-radius: 10px;
     `;
 
     header.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #059669;"></span>
-        <span style="font-size: 11px; font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">SENSOR KLAVIATURA</span>
-        <span id="vk-target-hint" style="font-size: 11px; color: #881337; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700;"></span>
-        <div id="vk-last-pressed" style="display: none; align-items: center; gap: 4px; padding: 2px 8px; background: #881337; color: #ffffff; border-radius: 6px; font-size: 11px; font-weight: 800; box-shadow: 0 1px 3px rgba(136,19,55,0.3); transition: opacity 0.2s;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #059669;"></span>
+        <span style="font-size: 12px; font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">SENSOR KLAVIATURA</span>
+        <span id="vk-target-hint" style="font-size: 12px; color: #881337; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800;"></span>
+        <div id="vk-last-pressed" style="display: none; align-items: center; gap: 5px; padding: 3px 10px; background: #881337; color: #ffffff; border-radius: 6px; font-size: 11px; font-weight: 800; box-shadow: 0 1px 3px rgba(136,19,55,0.3);">
           <span style="opacity: 0.85; font-size: 10px;">Bosildi:</span>
-          <span id="vk-last-char" style="background: #ffffff; color: #881337; padding: 0 6px; border-radius: 4px; font-size: 12px; font-weight: 900; min-width: 16px; text-align: center;">-</span>
+          <span id="vk-last-char" style="background: #ffffff; color: #881337; padding: 1px 7px; border-radius: 4px; font-size: 13px; font-weight: 900; min-width: 18px; text-align: center;">-</span>
         </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 6px;">
-        <button id="vk-mode-btn" type="button" style="padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">123 Raqamlar</button>
-        <button id="vk-lang-btn" type="button" style="padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; cursor: pointer; display: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">UZ Lotin</button>
-        <button id="vk-close-btn" type="button" style="padding: 4px 14px; border-radius: 8px; font-size: 11px; font-weight: 800; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; cursor: pointer;">✕ Yopish</button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button id="vk-mode-btn" type="button" style="padding: 5px 14px; border-radius: 8px; font-size: 12px; font-weight: 800; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">123 Raqamlar</button>
+        <button id="vk-lang-btn" type="button" style="padding: 5px 14px; border-radius: 8px; font-size: 12px; font-weight: 800; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; cursor: pointer; display: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">UZ Lotin</button>
+        <button id="vk-close-btn" type="button" style="padding: 5px 16px; border-radius: 8px; font-size: 12px; font-weight: 900; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; cursor: pointer;">✕ Yopish</button>
       </div>
     `;
 
@@ -250,10 +250,10 @@
       if (modeBtn) modeBtn.innerText = 'ABC Harflar';
       if (langBtn) langBtn.style.display = 'none';
 
-      // Sleek, Ultra-Responsive Light Numpad Layout (~165px height)
+      // Kattalashtirilgan, Sensor Monoblok uchun qulay Numpad (~220px balandlik)
       body.innerHTML = `
-        <div style="display: flex; justify-content: center; gap: 10px; max-width: 520px; margin: 0 auto;">
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; flex: 3;">
+        <div style="display: flex; justify-content: center; gap: 12px; max-width: 580px; margin: 0 auto;">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; flex: 3;">
             <button class="vk-key" data-key="7">7</button>
             <button class="vk-key" data-key="8">8</button>
             <button class="vk-key" data-key="9">9</button>
@@ -265,12 +265,12 @@
             <button class="vk-key" data-key="3">3</button>
             <button class="vk-key" data-key="0">0</button>
             <button class="vk-key" data-key="00">00</button>
-            <button class="vk-key" data-key="." style="font-weight: 900; font-size: 18px;">.</button>
+            <button class="vk-key" data-key="." style="font-weight: 900; font-size: 22px;">.</button>
           </div>
-          <div style="display: flex; flex-direction: column; gap: 6px; flex: 1.2;">
-            <button class="vk-action-key" data-action="backspace" style="background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; flex: 1; font-size: 13px; font-weight: 800;">⌫ O'chirish</button>
-            <button class="vk-action-key" data-action="clear" style="background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; flex: 1; font-size: 13px; font-weight: 700;">C Tozalash</button>
-            <button class="vk-action-key" data-action="enter" style="background: #059669; color: #ffffff; border: 1px solid #047857; flex: 1.6; font-size: 14px; font-weight: 900; box-shadow: 0 2px 4px rgba(5,150,105,0.25);">✓ OK (Enter)</button>
+          <div style="display: flex; flex-direction: column; gap: 8px; flex: 1.2;">
+            <button class="vk-action-key" data-action="backspace" style="background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; flex: 1; font-size: 15px; font-weight: 800;">⌫ O'chirish</button>
+            <button class="vk-action-key" data-action="clear" style="background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; flex: 1; font-size: 15px; font-weight: 700;">C Tozalash</button>
+            <button class="vk-action-key" data-action="enter" style="background: #059669; color: #ffffff; border: 1px solid #047857; flex: 1.6; font-size: 16px; font-weight: 900; box-shadow: 0 2px 4px rgba(5,150,105,0.25);">✓ OK (Enter)</button>
           </div>
         </div>
       `;
@@ -281,14 +281,14 @@
         langBtn.innerText = isCyrillic ? 'ЎЗ Кирилл' : 'UZ Lotin';
       }
 
-      // Compact QWERTY Touch Layout in Light Mode
+      // Windows Touch OSK uslubidagi kattalashtirilgan QWERTY klaviatura
       const rows = isCyrillic ? cyrillicRows : latinRows;
-      let html = '<div style="display: flex; flex-direction: column; gap: 4px; max-width: 960px; margin: 0 auto;">';
+      let html = '<div style="display: flex; flex-direction: column; gap: 5px; max-width: 1040px; margin: 0 auto;">';
 
       rows.forEach((row, idx) => {
-        html += '<div style="display: flex; justify-content: center; gap: 4px;">';
+        html += '<div style="display: flex; justify-content: center; gap: 5px;">';
         if (idx === 3) {
-          html += `<button class="vk-action-key" data-action="shift" style="width: 68px; background: ${isShift ? '#881337' : '#f8fafc'}; color: ${isShift ? '#ffffff' : '#0f172a'}; border: 1px solid ${isShift ? '#881337' : '#cbd5e1'}; font-size: 12px; font-weight: 800;">⇧ Shift</button>`;
+          html += `<button class="vk-action-key" data-action="shift" style="width: 84px; background: ${isShift ? '#881337' : '#f8fafc'}; color: ${isShift ? '#ffffff' : '#0f172a'}; border: 1px solid ${isShift ? '#881337' : '#cbd5e1'}; font-size: 14px; font-weight: 800;">⇧ Shift</button>`;
         }
         const activeRow = (idx === 0 && isShift && !isCyrillic) ? latinShiftRow0 : row;
         activeRow.forEach(ch => {
@@ -299,22 +299,22 @@
           html += `<button class="vk-key" data-key="${displayChar}">${displayChar}</button>`;
         });
         if (idx === 0) {
-          html += '<button class="vk-action-key" data-action="backspace" style="width: 68px; background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; font-size: 13px; font-weight: 800;">⌫</button>';
+          html += '<button class="vk-action-key" data-action="backspace" style="width: 84px; background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; font-size: 16px; font-weight: 900;">⌫</button>';
         } else if (idx === 3) {
-          html += '<button class="vk-action-key" data-action="enter" style="width: 80px; background: #059669; color: #ffffff; border: 1px solid #047857; font-weight: 800; font-size: 13px; box-shadow: 0 1px 3px rgba(5,150,105,0.25);">↵ Kirish</button>';
+          html += '<button class="vk-action-key" data-action="enter" style="width: 96px; background: #059669; color: #ffffff; border: 1px solid #047857; font-weight: 900; font-size: 15px; box-shadow: 0 1px 3px rgba(5,150,105,0.25);">↵ Kirish</button>';
         }
         html += '</div>';
       });
 
       // Windows On-Screen Keyboard Style Bottom Row (Clean OSK Layout)
       html += `
-        <div style="display: flex; justify-content: center; gap: 6px; margin-top: 3px;">
-          <button class="vk-action-key" data-action="toggle-mode" style="width: 70px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 12px; font-weight: 800;">&123</button>
-          <button class="vk-action-key" data-action="toggle-lang" style="width: 70px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 11px; font-weight: 800;">${isCyrillic ? 'ЎЗБ' : 'РУС'}</button>
-          <button class="vk-key" data-key=" " style="flex: 1; max-width: 580px; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 700;">Bo'sh joy (Space)</button>
-          <button class="vk-action-key" data-action="arrowleft" style="width: 54px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 900;" title="Chapga">◀</button>
-          <button class="vk-action-key" data-action="arrowright" style="width: 54px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 900;" title="O'ngga">▶</button>
-          <button class="vk-action-key" data-action="clear" style="padding: 0 16px; background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; font-size: 12px; font-weight: 800;" title="Tozalash">C</button>
+        <div style="display: flex; justify-content: center; gap: 6px; margin-top: 4px;">
+          <button class="vk-action-key" data-action="toggle-mode" style="width: 84px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 800;">&123</button>
+          <button class="vk-action-key" data-action="toggle-lang" style="width: 84px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 800;">${isCyrillic ? 'ЎЗБ' : 'РУС'}</button>
+          <button class="vk-key" data-key=" " style="flex: 1; max-width: 620px; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 700;">Bo'sh joy (Space)</button>
+          <button class="vk-action-key" data-action="arrowleft" style="width: 62px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 16px; font-weight: 900;" title="Chapga">◀</button>
+          <button class="vk-action-key" data-action="arrowright" style="width: 62px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 16px; font-weight: 900;" title="O'ngga">▶</button>
+          <button class="vk-action-key" data-action="clear" style="width: 64px; background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; font-size: 13px; font-weight: 900;" title="Tozalash">C</button>
         </div>
       `;
 
@@ -330,10 +330,10 @@
     const isNum = (currentMode === 'numpad');
     const keys = document.querySelectorAll('.vk-key, .vk-action-key');
     keys.forEach(k => {
-      k.style.height = isNum ? '38px' : '33px';
-      k.style.borderRadius = '8px';
-      k.style.fontSize = isNum ? '16px' : '13px';
-      k.style.fontWeight = '700';
+      k.style.height = isNum ? '52px' : '45px';
+      k.style.borderRadius = '10px';
+      k.style.fontSize = isNum ? '22px' : '16px';
+      k.style.fontWeight = '800';
       k.style.cursor = 'pointer';
       k.style.display = 'flex';
       k.style.alignItems = 'center';
@@ -346,7 +346,7 @@
         k.style.color = '#0f172a';
         k.style.border = '1px solid #cbd5e1';
         k.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
-        k.style.minWidth = isNum ? '48px' : '38px';
+        k.style.minWidth = isNum ? '64px' : '42px';
         k.style.flex = '1';
       }
     });
@@ -691,10 +691,10 @@
       if (!p.dataset.origPaddingBottom) {
         p.dataset.origPaddingBottom = p.style.paddingBottom || '0px';
       }
-      p.style.paddingBottom = '320px';
+      p.style.paddingBottom = '390px';
     });
 
-    document.body.style.paddingBottom = '260px';
+    document.body.style.paddingBottom = '320px';
 
     setTimeout(() => {
       try {
