@@ -698,6 +698,18 @@
       await loadCustomers();
       setupBarcodeInput();
 
+      // Real-time auto catalog sync with Boshqaruv (Admin)
+      syncCatalog(true);
+      setInterval(() => syncCatalog(false), 2000);
+      window.addEventListener('focus', () => syncCatalog(true));
+      try {
+        const catCh = new BroadcastChannel('orzu_catalog_channel');
+        catCh.onmessage = () => syncCatalog(true);
+      } catch(e) {}
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'orzu_catalog_updated') syncCatalog(true);
+      });
+
       // Show lock terminal screen on launch if no cashier logged in
       const savedCashier = sessionStorage.getItem('orzu_active_cashier');
       if (savedCashier) {
@@ -960,6 +972,78 @@
           }
         }
       } catch (e) {}
+    }
+
+    // ==========================================
+    // REAL-TIME AUTO CATALOG SYNC (BOSHQARUV BILAN BIR ZUMDA HAMOHANGLIK)
+    // ==========================================
+    let lastCatalogVersion = 0;
+    let isSyncingCatalog = false;
+
+    async function syncCatalog(force = false) {
+      if (isSyncingCatalog) return;
+      try {
+        isSyncingCatalog = true;
+        const res = await fetch('/api/catalog-version');
+        if (!res.ok) return;
+        const data = await res.json();
+        const ver = data.version || 0;
+
+        if (ver !== lastCatalogVersion || force) {
+          lastCatalogVersion = ver;
+          // Silently refresh products and categories in background
+          const [prodRes, catRes] = await Promise.all([
+            fetch('/api/products'),
+            fetch('/api/categories')
+          ]);
+          if (prodRes.ok && catRes.ok) {
+            allProducts = await prodRes.json();
+            const cats = await catRes.json();
+            allCategories = cats.filter(c => (c.product_count || 0) > 0);
+
+            // Re-render categories tabs while preserving selected category
+            const container = document.getElementById('categories-container');
+            if (container) {
+              container.innerHTML = `
+                <button class="cat-tab px-4 py-2 rounded-xl text-xs ${!activeCatId ? 'font-black bg-[#881337] text-white border-[#881337]' : 'font-bold bg-white text-slate-700 border-slate-200'} whitespace-nowrap shadow-sm border flex items-center gap-1.5 cursor-pointer" onclick="filterCategory(null, this)">
+                  <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Barcha tovarlar
+                </button>
+              `;
+              allCategories.forEach(c => {
+                const isActive = (activeCatId == c.id);
+                const btn = document.createElement('button');
+                btn.className = `cat-tab px-4 py-2 rounded-xl text-xs ${isActive ? 'font-black bg-[#881337] text-white border-[#881337]' : 'font-bold bg-white text-slate-700 border-slate-200'} whitespace-nowrap shadow-sm border flex items-center gap-1.5 cursor-pointer`;
+                btn.innerHTML = `<i data-lucide="${c.icon || 'tag'}" class="w-3.5 h-3.5 text-[#881337]"></i> ${c.name} (${c.product_count})`;
+                btn.onclick = () => filterCategory(c.id, btn);
+                container.appendChild(btn);
+              });
+              if (window.lucide) lucide.createIcons();
+            }
+
+            // Re-filter and render products grid
+            applyProductFilter();
+
+            // Update cart items stock and price without wiping or interrupting cart
+            if (cart && cart.length > 0) {
+              let cartUpdated = false;
+              cart.forEach(item => {
+                const fresh = allProducts.find(p => p.id === item.product_id);
+                if (fresh) {
+                  item.sell_price = fresh.sell_price;
+                  item.stock_quantity = fresh.stock_quantity;
+                  item.product_name = fresh.name;
+                  cartUpdated = true;
+                }
+              });
+              if (cartUpdated) renderCart();
+            }
+          }
+        }
+      } catch (err) {
+        // Silently catch network glitches
+      } finally {
+        isSyncingCatalog = false;
+      }
     }
 
     // ==========================================

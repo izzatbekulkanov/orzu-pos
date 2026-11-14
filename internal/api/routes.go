@@ -32,6 +32,7 @@ func SetupRoutes(app *fiber.App) {
 	api.Delete("/cashiers/:id", DeleteCashierHandler)
 
 	// Mahsulotlar (Kassa & Ombor)
+	api.Get("/catalog-version", GetCatalogVersionHandler)
 	api.Get("/products", GetProductsHandler)
 	api.Get("/products/barcode/:barcode", GetProductByBarcodeHandler)
 	api.Post("/products", CreateProductHandler)

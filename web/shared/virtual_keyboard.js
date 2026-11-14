@@ -7,6 +7,10 @@
   let isCyrillic = false;
   let isShift = false;
   let lastActionTime = 0;
+  let badgeTimeout = null;
+  let bubbleTimeout = null;
+
+  const latinShiftRow0 = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+'];
 
   const latinRows = [
     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='],
@@ -146,7 +150,11 @@
       <div style="display: flex; align-items: center; gap: 8px;">
         <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #059669;"></span>
         <span style="font-size: 11px; font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">SENSOR KLAVIATURA</span>
-        <span id="vk-target-hint" style="font-size: 11px; color: #881337; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700;"></span>
+        <span id="vk-target-hint" style="font-size: 11px; color: #881337; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700;"></span>
+        <div id="vk-last-pressed" style="display: none; align-items: center; gap: 4px; padding: 2px 8px; background: #881337; color: #ffffff; border-radius: 6px; font-size: 11px; font-weight: 800; box-shadow: 0 1px 3px rgba(136,19,55,0.3); transition: opacity 0.2s;">
+          <span style="opacity: 0.85; font-size: 10px;">Bosildi:</span>
+          <span id="vk-last-char" style="background: #ffffff; color: #881337; padding: 0 6px; border-radius: 4px; font-size: 12px; font-weight: 900; min-width: 16px; text-align: center;">-</span>
+        </div>
       </div>
       <div style="display: flex; align-items: center; gap: 6px;">
         <button id="vk-mode-btn" type="button" style="padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">123 Raqamlar</button>
@@ -161,6 +169,35 @@
     root.appendChild(header);
     root.appendChild(body);
     document.body.appendChild(root);
+
+    // Floating Magnifier Bubble directly above pressed key
+    let bubble = document.getElementById('vk-floating-bubble');
+    if (!bubble) {
+      bubble = document.createElement('div');
+      bubble.id = 'vk-floating-bubble';
+      bubble.style.cssText = `
+        position: fixed;
+        display: none;
+        pointer-events: none;
+        z-index: 1000002;
+        min-width: 44px;
+        height: 48px;
+        padding: 0 8px;
+        background: #881337;
+        color: #ffffff;
+        font-size: 22px;
+        font-weight: 900;
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+        border: 2px solid #ffffff;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        transform: translate(-50%, -100%);
+        transition: opacity 0.12s ease-out;
+      `;
+      document.body.appendChild(bubble);
+    }
 
     // Header buttons
     document.getElementById('vk-close-btn').addEventListener('click', (e) => {
@@ -235,7 +272,8 @@
         if (idx === 3) {
           html += `<button class="vk-action-key" data-action="shift" style="width: 68px; background: ${isShift ? '#881337' : '#f8fafc'}; color: ${isShift ? '#ffffff' : '#0f172a'}; border: 1px solid ${isShift ? '#881337' : '#cbd5e1'}; font-size: 12px; font-weight: 800;">⇧ Shift</button>`;
         }
-        row.forEach(ch => {
+        const activeRow = (idx === 0 && isShift && !isCyrillic) ? latinShiftRow0 : row;
+        activeRow.forEach(ch => {
           let displayChar = ch;
           if (ch.length === 1 && ch.match(/[a-zA-Zа-яА-ЯёЁ]/)) {
             displayChar = isShift ? ch.toUpperCase() : ch.toLowerCase();
@@ -250,13 +288,12 @@
         html += '</div>';
       });
 
-      // Bottom Row (Space, Tab, Clear)
+      // Bottom Row (Space, Tab, Clear) - NO '@' AT THE BOTTOM
       html += `
         <div style="display: flex; justify-content: center; gap: 6px; margin-top: 3px;">
-          <button class="vk-action-key" data-action="clear" style="padding: 0 16px; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-size: 12px; font-weight: 700;">Tozalash</button>
-          <button class="vk-key" data-key=" " style="flex: 1; max-width: 480px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 12px; font-weight: 700;">Bo'sh joy (Space)</button>
-          <button class="vk-key" data-key="@" style="width: 46px; font-weight: 700;">@</button>
-          <button class="vk-key" data-key=".uz" style="padding: 0 14px; font-size: 12px; font-weight: 700;">.uz</button>
+          <button class="vk-action-key" data-action="clear" style="padding: 0 18px; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-size: 12px; font-weight: 700;">Tozalash</button>
+          <button class="vk-key" data-key=" " style="flex: 1; max-width: 560px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 700;">Bo'sh joy (Space)</button>
+          <button class="vk-key" data-key=".uz" style="padding: 0 16px; font-size: 12px; font-weight: 700;">.uz</button>
         </div>
       `;
 
@@ -295,6 +332,73 @@
     });
   }
 
+  function showKeyFeedback(btn, charOrAction, isAction) {
+    if (!btn) return;
+
+    // 1. Highlight button with vivid contrast (#881337)
+    const origBg = btn.style.backgroundColor || btn.style.background || '';
+    const origColor = btn.style.color || '';
+    const origBorder = btn.style.borderColor || '';
+
+    btn.style.setProperty('background-color', '#881337', 'important');
+    btn.style.setProperty('color', '#ffffff', 'important');
+    btn.style.setProperty('border-color', '#4c0519', 'important');
+    btn.style.setProperty('box-shadow', '0 0 12px rgba(136,19,55,0.7)', 'important');
+    btn.style.transform = 'scale(0.92)';
+
+    setTimeout(() => {
+      btn.style.removeProperty('background-color');
+      btn.style.removeProperty('color');
+      btn.style.removeProperty('border-color');
+      btn.style.removeProperty('box-shadow');
+      if (origBg) btn.style.background = origBg;
+      if (origColor) btn.style.color = origColor;
+      if (origBorder) btn.style.borderColor = origBorder;
+      btn.style.transform = 'scale(1)';
+    }, 160);
+
+    // 2. Format label
+    let label = charOrAction;
+    if (isAction) {
+      if (charOrAction === 'backspace') label = '⌫';
+      else if (charOrAction === 'clear') label = 'Tozalash';
+      else if (charOrAction === 'enter') label = '✓ OK';
+      else if (charOrAction === 'shift') label = '⇧ Shift';
+    } else if (charOrAction === ' ') {
+      label = 'Bo\'sh joy';
+    }
+
+    // 3. Header badge
+    const badge = document.getElementById('vk-last-pressed');
+    const charSpan = document.getElementById('vk-last-char');
+    if (badge && charSpan) {
+      charSpan.innerText = label;
+      badge.style.display = 'inline-flex';
+      badge.style.opacity = '1';
+      if (badgeTimeout) clearTimeout(badgeTimeout);
+      badgeTimeout = setTimeout(() => {
+        badge.style.opacity = '0.4';
+      }, 1500);
+    }
+
+    // 4. Floating Magnifier Bubble directly above pressed key
+    const bubble = document.getElementById('vk-floating-bubble');
+    if (bubble) {
+      const rect = btn.getBoundingClientRect();
+      bubble.innerText = (label.length > 5) ? label.slice(0, 5) : label;
+      bubble.style.left = (rect.left + rect.width / 2) + 'px';
+      bubble.style.top = (rect.top - 8) + 'px';
+      bubble.style.display = 'flex';
+      bubble.style.opacity = '1';
+
+      if (bubbleTimeout) clearTimeout(bubbleTimeout);
+      bubbleTimeout = setTimeout(() => {
+        bubble.style.opacity = '0';
+        setTimeout(() => { bubble.style.display = 'none'; }, 120);
+      }, 200);
+    }
+  }
+
   function executeKey(charOrAction, isAction = false) {
     const now = Date.now();
     if (now - lastActionTime < 45) return;
@@ -329,11 +433,11 @@
       btn.onpointerdown = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        btn.style.transform = 'scale(0.92)';
+        showKeyFeedback(btn, val, isAction);
         executeKey(val, isAction);
       };
 
-      btn.onpointerup = () => { btn.style.transform = 'scale(1)'; };
+      btn.onpointerup = () => { setTimeout(() => { btn.style.transform = 'scale(1)'; }, 100); };
       btn.onpointercancel = () => { btn.style.transform = 'scale(1)'; };
       btn.onpointerleave = () => { btn.style.transform = 'scale(1)'; };
 
@@ -342,6 +446,7 @@
         e.preventDefault();
         e.stopPropagation();
         if (Date.now() - lastActionTime > 300) {
+          showKeyFeedback(btn, val, isAction);
           executeKey(val, isAction);
         }
       };

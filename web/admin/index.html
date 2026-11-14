@@ -1764,6 +1764,18 @@
       document.getElementById('category-modal').classList.remove('flex');
     }
 
+    // Kassa va boshqa ilovalarga tovar/toifa o'zgarganini bir zumda xabar qilish
+    function notifyCatalogChange() {
+      try {
+        const ch = new BroadcastChannel('orzu_catalog_channel');
+        ch.postMessage({ action: 'catalog_updated', time: Date.now() });
+        ch.close();
+      } catch (e) {}
+      try {
+        localStorage.setItem('orzu_catalog_updated', Date.now().toString());
+      } catch (e) {}
+    }
+
     async function saveCategoryFromModal() {
       const id = document.getElementById('edit-cat-id').value;
       const name = document.getElementById('cat-name-input').value.trim();
@@ -1786,6 +1798,7 @@
         if (res.ok) {
           closeCategoryModal();
           await loadCategories();
+          notifyCatalogChange();
           showToast(id ? "Toifa tahrirlandi" : "Yangi toifa qo'shildi!");
         } else {
           showToast("Toifani saqlashda xato yuz berdi", "error");
@@ -1811,6 +1824,7 @@
           if (currentDetailCat && currentDetailCat.id == id) {
             closeCategoryDetailView();
           }
+          notifyCatalogChange();
           showToast("Toifa o'chirildi");
         } else {
           showToast("O'chirishda xato yuz berdi", "error");
@@ -2167,6 +2181,7 @@
             showToast(`+${qty} ${unit} qo'shildi. Yangi qoldiq: ${data.stock_quantity}`, 'success');
             await loadProducts();
             await loadDashboard();
+            notifyCatalogChange();
           } else {
             showToast(data.error || "Xatolik yuz berdi", 'error');
           }
@@ -2291,6 +2306,7 @@
           if (currentDetailCat) {
             updateCategoryDetailView();
           }
+          notifyCatalogChange();
           showToast("Tovar muvaffaqiyatli saqlandi!");
         } else {
           const err = await res.json();
@@ -2318,6 +2334,7 @@
           if (currentDetailCat) {
             updateCategoryDetailView();
           }
+          notifyCatalogChange();
           showToast("Tovar o'chirildi");
         } else {
           showToast("Tovarni o'chirishda xatolik yuz berdi", "error");

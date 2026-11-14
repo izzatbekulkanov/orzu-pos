@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -24,6 +25,20 @@ import (
 	"github.com/izzatbekulkanov/orzu-pos/internal/tray"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var catalogVersion int64 = time.Now().UnixMilli()
+
+// bumpCatalogVersion - Tovar yoki toifa o'zgarganda versiyani yangilaydi (Kassaga real-vaqtda xabar berish)
+func bumpCatalogVersion() {
+	atomic.StoreInt64(&catalogVersion, time.Now().UnixMilli())
+}
+
+// GetCatalogVersionHandler - Real-vaqtda kassa va boshqaruv o'rtasida tovarlar yangilanishini tekshirish
+func GetCatalogVersionHandler(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{
+		"version": atomic.LoadInt64(&catalogVersion),
+	})
+}
 
 // LoginHandler - Tizimga kirish (Parol yoki PIN orqali)
 func LoginHandler(c *fiber.Ctx) error {
@@ -277,12 +292,14 @@ func CreateProductHandler(c *fiber.Ctx) error {
 		}
 		existing.IsActive = true
 		database.DB.Save(&existing)
+		bumpCatalogVersion()
 		return c.JSON(existing)
 	}
 
 	if err := database.DB.Create(&product).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
+	bumpCatalogVersion()
 	return c.Status(201).JSON(product)
 }
 
@@ -301,6 +318,7 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 	if err := database.DB.Save(&product).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
+	bumpCatalogVersion()
 	return c.JSON(product)
 }
 
@@ -310,6 +328,7 @@ func DeleteProductHandler(c *fiber.Ctx) error {
 	if err := database.DB.Model(&models.Product{}).Where("id = ?", id).Update("is_active", false).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
+	bumpCatalogVersion()
 	return c.JSON(fiber.Map{"success": true})
 }
 
@@ -366,6 +385,7 @@ func CreateCategoryHandler(c *fiber.Ctx) error {
 	if err := database.DB.Create(&category).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
+	bumpCatalogVersion()
 	return c.Status(201).JSON(category)
 }
 
@@ -398,6 +418,7 @@ func UpdateCategoryHandler(c *fiber.Ctx) error {
 	if err := database.DB.Save(&cat).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
+	bumpCatalogVersion()
 	return c.JSON(cat)
 }
 
@@ -407,6 +428,7 @@ func DeleteCategoryHandler(c *fiber.Ctx) error {
 	if err := database.DB.Delete(&models.Category{}, id).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
+	bumpCatalogVersion()
 	return c.JSON(fiber.Map{"success": true, "message": "Toifa muvaffaqiyatli o'chirildi"})
 }
 
@@ -429,6 +451,7 @@ func CheckoutHandler(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
+	bumpCatalogVersion()
 
 	return c.JSON(fiber.Map{
 		"success":      true,
@@ -684,6 +707,7 @@ func AddProductStockHandler(c *fiber.Ctx) error {
 	if err := database.DB.Save(&product).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
+	bumpCatalogVersion()
 
 	return c.JSON(fiber.Map{
 		"success":        true,
