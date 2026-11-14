@@ -306,7 +306,7 @@
         html += '</div>';
       });
 
-      // Windows On-Screen Keyboard Style Bottom Row (NO .uz or domain suffixes!)
+      // Windows On-Screen Keyboard Style Bottom Row (Clean OSK Layout)
       html += `
         <div style="display: flex; justify-content: center; gap: 6px; margin-top: 3px;">
           <button class="vk-action-key" data-action="toggle-mode" style="width: 70px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 12px; font-weight: 800;">&123</button>
