@@ -306,12 +306,15 @@
         html += '</div>';
       });
 
-      // Bottom Row (Space, Tab, Clear) - NO '@' AT THE BOTTOM
+      // Windows On-Screen Keyboard Style Bottom Row (NO .uz or domain suffixes!)
       html += `
         <div style="display: flex; justify-content: center; gap: 6px; margin-top: 3px;">
-          <button class="vk-action-key" data-action="clear" style="padding: 0 18px; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; font-size: 12px; font-weight: 700;">Tozalash</button>
-          <button class="vk-key" data-key=" " style="flex: 1; max-width: 560px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 700;">Bo'sh joy (Space)</button>
-          <button class="vk-key" data-key=".uz" style="padding: 0 16px; font-size: 12px; font-weight: 700;">.uz</button>
+          <button class="vk-action-key" data-action="toggle-mode" style="width: 70px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 12px; font-weight: 800;">&123</button>
+          <button class="vk-action-key" data-action="toggle-lang" style="width: 70px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 11px; font-weight: 800;">${isCyrillic ? 'ЎЗБ' : 'РУС'}</button>
+          <button class="vk-key" data-key=" " style="flex: 1; max-width: 580px; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 700;">Bo'sh joy (Space)</button>
+          <button class="vk-action-key" data-action="arrowleft" style="width: 54px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 900;" title="Chapga">◀</button>
+          <button class="vk-action-key" data-action="arrowright" style="width: 54px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; font-size: 14px; font-weight: 900;" title="O'ngga">▶</button>
+          <button class="vk-action-key" data-action="clear" style="padding: 0 16px; background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; font-size: 12px; font-weight: 800;" title="Tozalash">C</button>
         </div>
       `;
 
@@ -375,6 +378,10 @@
       else if (charOrAction === 'clear') label = 'Tozalash';
       else if (charOrAction === 'enter') label = '✓ OK';
       else if (charOrAction === 'shift') label = '⇧ Shift';
+      else if (charOrAction === 'toggle-mode') label = '&123';
+      else if (charOrAction === 'toggle-lang') label = isCyrillic ? 'ЎЗБ' : 'РУС';
+      else if (charOrAction === 'arrowleft') label = '◀';
+      else if (charOrAction === 'arrowright') label = '▶';
     } else if (charOrAction === ' ') {
       label = 'Bo\'sh joy';
     }
@@ -408,6 +415,21 @@
     }, 70);
   }
 
+  function moveCursor(direction) {
+    if (!activeInput) {
+      activeInput = findBestActiveInput();
+      if (!activeInput) return;
+    }
+    const el = activeInput;
+    try {
+      el.focus();
+      const val = el.value || '';
+      let pos = (el.selectionStart ?? val.length) + direction;
+      pos = Math.max(0, Math.min(val.length, pos));
+      el.setSelectionRange(pos, pos);
+    } catch (e) {}
+  }
+
   function executeKey(charOrAction, isAction = false) {
     const now = Date.now();
     if (now - lastActionTime < 10) return;
@@ -420,6 +442,17 @@
       else if (charOrAction === 'shift') {
         isShift = !isShift;
         renderKeys();
+      } else if (charOrAction === 'toggle-mode') {
+        currentMode = (currentMode === 'qwerty') ? 'numpad' : 'qwerty';
+        renderKeys();
+        if (activeInput) adjustScrollContainerForInput(activeInput);
+      } else if (charOrAction === 'toggle-lang') {
+        isCyrillic = !isCyrillic;
+        renderKeys();
+      } else if (charOrAction === 'arrowleft') {
+        moveCursor(-1);
+      } else if (charOrAction === 'arrowright') {
+        moveCursor(1);
       }
     } else {
       insertText(charOrAction);

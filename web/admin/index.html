@@ -205,18 +205,18 @@
     <!-- 2. PRODUCTS & INVENTORY (WITH LOCATION) -->
     <section id="tab-products" class="hidden space-y-4">
       <div class="flex flex-col gap-3">
-        <!-- Row 1: Search & Clear & Add Button -->
+        <!-- Row 1: Search, Clear & Add Button -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div class="flex items-center gap-2 flex-1 w-full">
             <div class="relative flex-1">
               <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-[#881337]"></i>
               <input type="text" id="product-search-input" oninput="filterProductsList()" placeholder="Nom, shtrix-kod yoki joylashuv (polka) bo'yicha qidirish..."
-                     class="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-9 py-2.5 text-xs text-slate-900 focus:border-[#881337] placeholder-slate-400 focus:outline-none font-medium">
-              <button id="btn-clear-product-search-x" onclick="clearProductSearch()" class="hidden absolute right-3 top-2.5 text-slate-400 hover:text-rose-600 transition p-0.5 rounded cursor-pointer" title="Tozalash">
-                <i data-lucide="x" class="w-4 h-4"></i>
+                     class="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-24 py-2.5 text-xs text-slate-900 focus:border-[#881337] placeholder-slate-400 focus:outline-none font-medium">
+              <button type="button" onclick="clearProductSearch()" class="absolute right-1.5 top-1.5 bottom-1.5 px-3 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 font-bold text-xs flex items-center gap-1 transition cursor-pointer border border-slate-200" title="Qidiruv matnini tozalash">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i> Tozalash
               </button>
             </div>
-            <button onclick="clearProductSearch()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-bold text-xs border border-slate-300 flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 transition shadow-sm" title="Qidiruvni tozalash">
+            <button type="button" onclick="clearProductSearch()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-bold text-xs border border-slate-300 flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 transition shadow-sm" title="Qidiruvni tozalash">
               <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-slate-500"></i> Tozalash
             </button>
           </div>
