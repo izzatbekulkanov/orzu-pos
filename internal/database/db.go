@@ -169,64 +169,90 @@ func seedInitialData(db *gorm.DB) {
 		log.Println("[Database] Kassirlar yaratildi: Dildora Karimova (PIN: 1111), Nodir Bekmurodov (PIN: 2222)")
 	}
 
-	// 4. Standart toifalar va mahsulotlar
-	defaultCats := []models.Category{
-		{Name: "Ichimlik suvi va Ichimliklar", Icon: "cup-soda", Color: "#0284c7"},
-		{Name: "Oziq-ovqat va Baqollik", Icon: "shopping-bag", Color: "#d97706"},
-		{Name: "Dorixona va Salomatlik", Icon: "heart-pulse", Color: "#e11d48"},
-		{Name: "Non va Qandolat", Icon: "croissant", Color: "#f59e0b"},
-		{Name: "Sut va Go'sht mahsulotlari", Icon: "milk", Color: "#10b981"},
-		{Name: "Meva va Sabzavotlar", Icon: "apple", Color: "#84cc16"},
-		{Name: "Maishiy kimyo", Icon: "sparkles", Color: "#8b5cf6"},
-	}
-	for _, c := range defaultCats {
-		var existing models.Category
-		if db.Where("name = ?", c.Name).First(&existing).Error != nil {
-			db.Create(&c)
+	// 4. Standart toifalar va mahsulotlar (Faqat baza bo'm-bo'sh bo'lganda bir martagina yuklanadi)
+	var catSeedDone models.Setting
+	if db.Where("key = ?", "initial_categories_seeded").First(&catSeedDone).Error != nil {
+		var catCount int64
+		db.Unscoped().Model(&models.Category{}).Count(&catCount)
+		if catCount == 0 {
+			defaultCats := []models.Category{
+				{Name: "Ichimlik suvi va Ichimliklar", Icon: "cup-soda", Color: "#0284c7"},
+				{Name: "Oziq-ovqat va Baqollik", Icon: "shopping-bag", Color: "#d97706"},
+				{Name: "Dorixona va Salomatlik", Icon: "heart-pulse", Color: "#e11d48"},
+				{Name: "Non va Qandolat", Icon: "croissant", Color: "#f59e0b"},
+				{Name: "Sut va Go'sht mahsulotlari", Icon: "milk", Color: "#10b981"},
+				{Name: "Meva va Sabzavotlar", Icon: "apple", Color: "#84cc16"},
+				{Name: "Maishiy kimyo", Icon: "sparkles", Color: "#8b5cf6"},
+			}
+			for _, c := range defaultCats {
+				db.Create(&c)
+			}
+			log.Println("[Database] Boshlang'ich toifalar muvaffaqiyatli yuklandi.")
 		}
-	}
-
-	var prodCount int64
-	db.Model(&models.Product{}).Count(&prodCount)
-	if prodCount == 0 {
-		var catBread, catDrink, catDairy, catGrocery models.Category
-		db.Where("name LIKE ?", "%Non%").First(&catBread)
-		db.Where("name LIKE ?", "%Ichimlik%").First(&catDrink)
-		db.Where("name LIKE ?", "%Sut%").First(&catDairy)
-		db.Where("name LIKE ?", "%Oziq%").First(&catGrocery)
-
-		demoProducts := []models.Product{
-			{Barcode: "4780001234567", Name: "Samarqand noni (dona)", CategoryID: catBread.ID, BuyPrice: 3500, SellPrice: 5000, StockQuantity: 80, Unit: "dona"},
-			{Barcode: "5449000000996", Name: "Coca-Cola 1.5L", CategoryID: catDrink.ID, BuyPrice: 11000, SellPrice: 14000, StockQuantity: 120, Unit: "dona"},
-			{Barcode: "4780018890012", Name: "Nestle Sut 3.2% 1L", CategoryID: catDairy.ID, BuyPrice: 12500, SellPrice: 16000, StockQuantity: 50, Unit: "dona"},
-			{Barcode: "4780029988771", Name: "Qand (oq shakar 1kg)", CategoryID: catGrocery.ID, BuyPrice: 9000, SellPrice: 11500, StockQuantity: 200, Unit: "kg"},
-			{Barcode: "2000001002500", Name: "Olma Beshyulduz (kg)", CategoryID: catGrocery.ID, BuyPrice: 12000, SellPrice: 16000, StockQuantity: 45.5, Unit: "kg"},
-		}
-		for _, p := range demoProducts {
-			db.Create(&p)
-		}
-		log.Println("[Database] Boshlang'ich demo tovarlar yuklandi.")
+		db.Create(&models.Setting{
+			Key:         "initial_categories_seeded",
+			Value:       "true",
+			Description: "Boshlang'ich toifalar yuklanganlik holati",
+		})
 	}
 
-	// 4b. Ensure user's barcode 6927291699864 exists
-	var userProd models.Product
-	if err := db.Where("barcode = ?", "6927291699864").First(&userProd).Error; err != nil {
-		var firstCat models.Category
-		db.First(&firstCat)
-		catID := firstCat.ID
-		if catID == 0 {
-			catID = 1
+	var prodSeedDone models.Setting
+	if db.Where("key = ?", "initial_demo_products_seeded").First(&prodSeedDone).Error != nil {
+		var prodCount int64
+		db.Unscoped().Model(&models.Product{}).Count(&prodCount)
+		if prodCount == 0 {
+			var catBread, catDrink, catDairy, catGrocery models.Category
+			db.Where("name LIKE ?", "%Non%").First(&catBread)
+			db.Where("name LIKE ?", "%Ichimlik%").First(&catDrink)
+			db.Where("name LIKE ?", "%Sut%").First(&catDairy)
+			db.Where("name LIKE ?", "%Oziq%").First(&catGrocery)
+
+			demoProducts := []models.Product{
+				{Barcode: "4780001234567", Name: "Samarqand noni (dona)", CategoryID: catBread.ID, BuyPrice: 3500, SellPrice: 5000, StockQuantity: 80, Unit: "dona"},
+				{Barcode: "5449000000996", Name: "Coca-Cola 1.5L", CategoryID: catDrink.ID, BuyPrice: 11000, SellPrice: 14000, StockQuantity: 120, Unit: "dona"},
+				{Barcode: "4780018890012", Name: "Nestle Sut 3.2% 1L", CategoryID: catDairy.ID, BuyPrice: 12500, SellPrice: 16000, StockQuantity: 50, Unit: "dona"},
+				{Barcode: "4780029988771", Name: "Qand (oq shakar 1kg)", CategoryID: catGrocery.ID, BuyPrice: 9000, SellPrice: 11500, StockQuantity: 200, Unit: "kg"},
+				{Barcode: "2000001002500", Name: "Olma Beshyulduz (kg)", CategoryID: catGrocery.ID, BuyPrice: 12000, SellPrice: 16000, StockQuantity: 45.5, Unit: "kg"},
+			}
+			for _, p := range demoProducts {
+				db.Create(&p)
+			}
+			log.Println("[Database] Boshlang'ich demo tovarlar yuklandi.")
 		}
-		db.Create(&models.Product{
-			Barcode:       "6927291699864",
-			ShortCode:     "1007",
-			Name:          "Skanerlangan Mahsulot 6927291699864",
-			CategoryID:    catID,
-			Location:      "A-1 polka",
-			BuyPrice:      8000,
-			SellPrice:     12000,
-			StockQuantity: 100,
-			Unit:          "dona",
+		db.Create(&models.Setting{
+			Key:         "initial_demo_products_seeded",
+			Value:       "true",
+			Description: "Boshlang'ich demo tovarlar yuklanganlik holati",
+		})
+	}
+
+	// 4b. Ensure user's barcode 6927291699864 exists (Bir martagina tekshiriladi)
+	var barcodeSeedDone models.Setting
+	if db.Where("key = ?", "barcode_6927291699864_seeded").First(&barcodeSeedDone).Error != nil {
+		var userProd models.Product
+		if err := db.Unscoped().Where("barcode = ?", "6927291699864").First(&userProd).Error; err != nil {
+			var firstCat models.Category
+			db.First(&firstCat)
+			catID := firstCat.ID
+			if catID == 0 {
+				catID = 1
+			}
+			db.Create(&models.Product{
+				Barcode:       "6927291699864",
+				ShortCode:     "1007",
+				Name:          "Skanerlangan Mahsulot 6927291699864",
+				CategoryID:    catID,
+				Location:      "A-1 polka",
+				BuyPrice:      8000,
+				SellPrice:     12000,
+				StockQuantity: 100,
+				Unit:          "dona",
+			})
+		}
+		db.Create(&models.Setting{
+			Key:         "barcode_6927291699864_seeded",
+			Value:       "true",
+			Description: "Sinov shtrix kodi bir martalik holati",
 		})
 	}
 

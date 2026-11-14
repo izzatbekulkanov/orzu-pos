@@ -428,6 +428,10 @@ func DeleteCategoryHandler(c *fiber.Ctx) error {
 	if err := database.DB.Delete(&models.Category{}, id).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
+
+	// Xavfsizlik kafolati: Toifa o'chirilganda tovarlar hech qachon o'chib ketmaydi, faqat toifasiz (0) holatiga o'tadi
+	database.DB.Model(&models.Product{}).Where("category_id = ?", id).Update("category_id", 0)
+
 	bumpCatalogVersion()
 	return c.JSON(fiber.Map{"success": true, "message": "Toifa muvaffaqiyatli o'chirildi"})
 }
