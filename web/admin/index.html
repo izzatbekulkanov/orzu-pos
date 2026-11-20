@@ -241,7 +241,7 @@
               <tr>
                 <th class="py-3.5 px-3 w-12 text-center whitespace-nowrap">T/r</th>
                 <th class="py-3.5 px-2 w-12 text-center whitespace-nowrap">Rasm</th>
-                <th class="py-3.5 px-3 whitespace-nowrap">Shtrix-kod</th>
+                <th class="py-3.5 px-3 text-center whitespace-nowrap w-32 min-w-[125px] max-w-[140px]">Shtrix-kod</th>
                 <th class="py-3.5 px-2 text-center whitespace-nowrap">4 xonali kod</th>
                 <th class="py-3.5 px-3 min-w-[170px]">Tovar nomi</th>
                 <th class="py-3.5 px-3 whitespace-nowrap">Toifasi</th>
@@ -347,7 +347,7 @@
             <table class="w-full text-left text-xs min-w-[900px]">
               <thead class="bg-slate-100 text-slate-800 font-black border-b-2 border-slate-300">
                 <tr>
-                  <th class="py-3.5 px-4 whitespace-nowrap">Shtrix-kod</th>
+                  <th class="py-3.5 px-3 text-center whitespace-nowrap w-32 min-w-[125px] max-w-[140px]">Shtrix-kod</th>
                   <th class="py-3.5 px-4 min-w-[160px]">Tovar nomi</th>
                   <th class="py-3.5 px-4 whitespace-nowrap">Joylashuvi (Polka / Qator)</th>
                   <th class="py-3.5 px-4 text-right whitespace-nowrap">Tannarx</th>
@@ -1699,7 +1699,7 @@
         const tr = document.createElement('tr');
         tr.className = 'group hover:bg-slate-50 transition border-b border-slate-100';
         tr.innerHTML = `
-          <td class="py-2.5 px-4 font-mono font-bold text-[#881337] whitespace-nowrap">${p.barcode}</td>
+          <td class="py-2.5 px-3 font-mono font-bold text-[#881337] text-center whitespace-nowrap w-32 max-w-[140px] truncate" title="${p.barcode}">${p.barcode}</td>
           <td class="py-2.5 px-4 font-bold text-slate-900 min-w-[160px]">${p.name}</td>
           <td class="py-2.5 px-4 whitespace-nowrap">${locBadge}</td>
           <td class="py-2.5 px-4 text-slate-600 font-mono font-bold text-right whitespace-nowrap">${p.buy_price.toLocaleString()} so'm</td>
@@ -1986,7 +1986,7 @@
         tr.innerHTML = `
           <td class="py-2.5 px-3 text-center font-mono text-slate-500 font-bold whitespace-nowrap">${idx + 1}</td>
           <td class="py-2.5 px-2 text-center">${imgThumb}</td>
-          <td class="py-2.5 px-3 font-mono font-bold text-[#881337] whitespace-nowrap">${p.barcode}</td>
+          <td class="py-2.5 px-3 font-mono font-bold text-[#881337] text-center whitespace-nowrap w-32 max-w-[140px] truncate" title="${p.barcode}">${p.barcode}</td>
           <td class="py-2.5 px-2 font-mono font-bold text-amber-800 text-center whitespace-nowrap">#${p.short_code || '--'}</td>
           <td class="py-2.5 px-3 font-bold text-slate-900 min-w-[170px]">${p.name}</td>
           <td class="py-2.5 px-3 whitespace-nowrap">
@@ -2294,9 +2294,42 @@
       document.getElementById('unit-dropdown-panel')?.classList.add('hidden');
     }
 
+    function cleanBarcodeString(orig) {
+      if (!orig) return '';
+      orig = String(orig).trim();
+      if (orig.length === 26 && orig.slice(0, 13) === orig.slice(13) && /^\d+$/.test(orig)) {
+        return orig.slice(0, 13);
+      }
+      if (orig.length === 39 && orig.slice(0, 13) === orig.slice(13, 26) && orig.slice(0, 13) === orig.slice(26) && /^\d+$/.test(orig)) {
+        return orig.slice(0, 13);
+      }
+      const dm = orig.match(/010?(\d{13})/);
+      if (dm) return dm[1];
+      const ean = orig.match(/(?:478\d{10}|46\d{11}|487\d{10}|482\d{10}|486\d{10}|762\d{10}|899\d{10}|69\d{11}|626\d{10}|789\d{10}|483\d{10}|869\d{10}|868\d{10}|40\d{11}|544\d{10}|200\d{10})/);
+      if (ean) return ean[0];
+      const d13 = orig.match(/\b\d{13}\b/) || orig.match(/\d{13}/);
+      if (d13) return d13[0];
+      const d8_12 = orig.match(/\b\d{8,12}\b/);
+      if (d8_12) return d8_12[0];
+      const digitsOnly = orig.replace(/\D/g, '');
+      if (digitsOnly.length >= 8 && digitsOnly.length <= 14) return digitsOnly;
+      if (digitsOnly.length === 26) return digitsOnly.slice(0, 13);
+      return orig;
+    }
+
+    document.getElementById('new-barcode')?.addEventListener('blur', function() {
+      if (this.value) this.value = cleanBarcodeString(this.value);
+    });
+    document.getElementById('new-barcode')?.addEventListener('input', function() {
+      const cleaned = cleanBarcodeString(this.value);
+      if (cleaned !== this.value && cleaned.length >= 8) {
+        this.value = cleaned;
+      }
+    });
+
     async function saveProduct() {
       const editId = document.getElementById('edit-product-id').value;
-      const barcode = document.getElementById('new-barcode').value.trim();
+      const barcode = cleanBarcodeString(document.getElementById('new-barcode').value);
       const shortCode = document.getElementById('new-short-code').value.trim();
       const name = document.getElementById('new-name').value.trim();
       const location = document.getElementById('new-location').value.trim();

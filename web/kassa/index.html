@@ -592,14 +592,40 @@
       }
     });
 
+    function cleanBarcodeString(orig) {
+      if (!orig) return '';
+      orig = String(orig).trim();
+      if (orig.length === 26 && orig.slice(0, 13) === orig.slice(13) && /^\d+$/.test(orig)) {
+        return orig.slice(0, 13);
+      }
+      if (orig.length === 39 && orig.slice(0, 13) === orig.slice(13, 26) && orig.slice(0, 13) === orig.slice(26) && /^\d+$/.test(orig)) {
+        return orig.slice(0, 13);
+      }
+      const dm = orig.match(/010?(\d{13})/);
+      if (dm) return dm[1];
+      const ean = orig.match(/(?:478\d{10}|46\d{11}|487\d{10}|482\d{10}|486\d{10}|762\d{10}|899\d{10}|69\d{11}|626\d{10}|789\d{10}|483\d{10}|869\d{10}|868\d{10}|40\d{11}|544\d{10}|200\d{10})/);
+      if (ean) return ean[0];
+      const d13 = orig.match(/\b\d{13}\b/) || orig.match(/\d{13}/);
+      if (d13) return d13[0];
+      const d8_12 = orig.match(/\b\d{8,12}\b/);
+      if (d8_12) return d8_12[0];
+      const digitsOnly = orig.replace(/\D/g, '');
+      if (digitsOnly.length >= 8 && digitsOnly.length <= 14) return digitsOnly;
+      if (digitsOnly.length === 26) return digitsOnly.slice(0, 13);
+      return orig;
+    }
+
     async function handleScannedBarcode(code) {
       code = (code || '').trim();
       if (!code) return;
+      const cleaned = cleanBarcodeString(code);
 
       // 1. Exact match in local array by barcode or 4-digit code
       const exact = allProducts.find(p => 
         p.barcode === code || 
+        (cleaned && p.barcode === cleaned) ||
         (p.short_code && p.short_code === code) ||
+        (cleaned && p.short_code && p.short_code === cleaned) ||
         p.name.toLowerCase() === code.toLowerCase()
       );
 
@@ -615,7 +641,8 @@
 
       // 2. Fetch from server API
       try {
-        const res = await fetch('/api/products/barcode/' + encodeURIComponent(code));
+        const queryCode = cleaned || code;
+        const res = await fetch('/api/products/barcode/' + encodeURIComponent(queryCode));
         if (res.ok) {
           const product = await res.json();
           addToCart(product);

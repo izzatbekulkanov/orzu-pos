@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -236,15 +237,69 @@ func GetProductsHandler(c *fiber.Ctx) error {
 	return c.JSON(products)
 }
 
+var (
+	eanPrefixRegex  = regexp.MustCompile(`(?:478\d{10}|46\d{11}|487\d{10}|482\d{10}|486\d{10}|762\d{10}|899\d{10}|69\d{11}|626\d{10}|789\d{10}|483\d{10}|869\d{10}|868\d{10}|40\d{11}|544\d{10}|200\d{10})`)
+	dataMatrixRegex = regexp.MustCompile(`010?(\d{13})`)
+	digits13Regex   = regexp.MustCompile(`\d{13}`)
+	digits8_12Regex = regexp.MustCompile(`\b\d{8,12}\b`)
+)
+
+// CleanBarcodeString extracts valid barcode digits and removes URLs or scan duplicates
+func CleanBarcodeString(orig string) string {
+	orig = strings.TrimSpace(orig)
+	if orig == "" {
+		return ""
+	}
+	// Repeated 13-digit barcode (scanner stutter / duplicate scan)
+	if len(orig) == 26 && orig[:13] == orig[13:] {
+		return orig[:13]
+	}
+	if len(orig) == 39 && orig[:13] == orig[13:26] && orig[:13] == orig[26:] {
+		return orig[:13]
+	}
+	// DataMatrix GTIN-13 (Uzbekistan Asl Belgisi / GS1 DataMatrix)
+	if m := dataMatrixRegex.FindStringSubmatch(orig); len(m) > 1 {
+		return m[1]
+	}
+	// Common EAN prefixes (Uzbekistan 478, Russia 460-469, Kazakhstan 487, etc.)
+	if m := eanPrefixRegex.FindString(orig); m != "" {
+		return m
+	}
+	// Any 13 consecutive digits
+	if m := digits13Regex.FindString(orig); m != "" {
+		return m
+	}
+	// 8-12 digits (EAN-8, UPC)
+	if m := digits8_12Regex.FindString(orig); m != "" {
+		return m
+	}
+	// Pure digits fallback
+	var sb strings.Builder
+	for _, r := range orig {
+		if r >= '0' && r <= '9' {
+			sb.WriteRune(r)
+		}
+	}
+	digits := sb.String()
+	if len(digits) >= 8 && len(digits) <= 14 {
+		return digits
+	}
+	if len(digits) == 26 {
+		return digits[:13]
+	}
+	return orig
+}
+
 // GetProductByBarcodeHandler - Shtrix-kod yoki 4 xonali qisqa kod orqali bir zumda tovarni topish (Kassa uchun)
 func GetProductByBarcodeHandler(c *fiber.Ctx) error {
 	code := strings.TrimSpace(c.Params("barcode"))
 	if code == "" {
 		return c.Status(400).JSON(fiber.Map{"error": "Shtrix-kod yoki qisqa kod kiritilmadi"})
 	}
+	cleanedCode := CleanBarcodeString(code)
 
 	var product models.Product
-	if err := database.DB.Preload("Category").Where("(barcode = ? OR short_code = ?) AND is_active = ?", code, code, true).First(&product).Error; err != nil {
+	if err := database.DB.Preload("Category").Where("(barcode = ? OR barcode = ? OR short_code = ? OR short_code = ?) AND is_active = ?", code, cleanedCode, code, cleanedCode, true).First(&product).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "Bunday shtrix-kod yoki qisqa kodli tovar topilmadi"})
 	}
 
@@ -257,7 +312,7 @@ func CreateProductHandler(c *fiber.Ctx) error {
 	if err := c.BodyParser(&product); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
-	product.Barcode = strings.TrimSpace(product.Barcode)
+	product.Barcode = CleanBarcodeString(product.Barcode)
 	product.ShortCode = strings.TrimSpace(product.ShortCode)
 	product.Name = strings.TrimSpace(product.Name)
 
@@ -314,6 +369,9 @@ func UpdateProductHandler(c *fiber.Ctx) error {
 	if err := c.BodyParser(&product); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
+	product.Barcode = CleanBarcodeString(product.Barcode)
+	product.ShortCode = strings.TrimSpace(product.ShortCode)
+	product.Name = strings.TrimSpace(product.Name)
 
 	if err := database.DB.Save(&product).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
