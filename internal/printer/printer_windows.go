@@ -453,15 +453,13 @@ func BuildEscPos40x30Label(req LabelRequest) []byte {
 		}
 
 		if len(code) == 13 && isDigits {
-			// EAN-13
-			buf.Write([]byte("\x1d\x6b\x02"))
+			// EAN-13 (Format B: GS k 67 13 [13-digits])
+			buf.Write([]byte{0x1d, 0x6b, 0x43, 0x0d})
 			buf.WriteString(code)
-			buf.WriteByte(0)
 		} else if len(code) == 8 && isDigits {
-			// EAN-8
-			buf.Write([]byte("\x1d\x6b\x01"))
+			// EAN-8 (Format B: GS k 68 8 [8-digits])
+			buf.Write([]byte{0x1d, 0x6b, 0x44, 0x08})
 			buf.WriteString(code)
-			buf.WriteByte(0)
 		} else {
 			// Code 128 (Subset B)
 			payload := append([]byte{0x7b, 0x42}, []byte(code)...)
@@ -480,9 +478,11 @@ func BuildEscPos40x30Label(req LabelRequest) []byte {
 		buf.Write([]byte("\x1b\x45\x00")) // Bold OFF
 	}
 
-	// 6. Reset line spacing & 1 single clean line feed (NO cut, NO extra empty space)
-	buf.Write([]byte("\x1b\x32")) // Default line spacing
-	buf.WriteString("\n")
+	// 6. Reset line spacing & feed forward to tear bar (pichoq / chiqish teshigiga chiqarish)
+	buf.Write([]byte("\x1b\x32"))
+	buf.WriteString("\n\n\n\n")
+
+	return buf.Bytes()
 
 	return buf.Bytes()
 }
