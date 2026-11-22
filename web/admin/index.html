@@ -258,6 +258,38 @@
             </tbody>
           </table>
         </div>
+
+        <!-- 50 / 100 talik Pagination controls for Tovarlar & Ombor -->
+        <div class="p-3.5 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div class="text-slate-600 font-medium">
+            Jami: <span id="products-total-count" class="font-bold text-slate-900">0</span> ta tovar | 
+            Ko'rsatilmoqda: <span id="products-range-display" class="font-bold text-[#881337]">0-0</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5 text-slate-600 font-medium">
+              <span>Har sahifada:</span>
+              <select id="products-page-size" onchange="changeProductsPageSize(this.value)" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#881337] cursor-pointer shadow-sm">
+                <option value="50" selected>50 ta dan</option>
+                <option value="100">100 ta dan</option>
+                <option value="200">200 ta dan</option>
+                <option value="all">Barchasi</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="prevProductsPage()" id="btn-products-prev" class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-800 font-bold disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300 flex items-center gap-1 cursor-pointer transition shadow-sm">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i> Oldingi
+              </button>
+              <div class="font-bold text-slate-800 px-1">
+                Sahifa <span id="products-current-page" class="text-[#881337]">1</span> / <span id="products-total-pages">1</span>
+              </div>
+              <button onclick="nextProductsPage()" id="btn-products-next" class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-800 font-bold disabled:opacity-40 disabled:cursor-not-allowed border border-slate-300 flex items-center gap-1 cursor-pointer transition shadow-sm">
+                Keyingi <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1951,19 +1983,88 @@
     }
 
     // ==========================================
-    // PRODUCTS INVENTORY WITH LOCATION
+    // PRODUCTS INVENTORY WITH PAGINATION & LOCATION
     // ==========================================
+    let currentFilteredProducts = [];
+    let productsCurrentPage = 1;
+    let productsPageSize = 50;
+
     async function loadProducts() {
       try {
         const res = await fetch('/api/products');
         allProducts = await res.json();
-        renderProductsTable(allProducts);
+        currentFilteredProducts = allProducts;
+        productsCurrentPage = 1;
+        updateProductsPagination();
       } catch (err) {
         console.error(err);
       }
     }
 
-    function renderProductsTable(prods) {
+    function changeProductsPageSize(size) {
+      if (size === 'all') {
+        productsPageSize = 999999;
+      } else {
+        productsPageSize = parseInt(size) || 50;
+      }
+      productsCurrentPage = 1;
+      updateProductsPagination();
+    }
+
+    function prevProductsPage() {
+      if (productsCurrentPage > 1) {
+        productsCurrentPage--;
+        updateProductsPagination();
+        scrollToProductsTop();
+      }
+    }
+
+    function nextProductsPage() {
+      const totalPages = Math.ceil(currentFilteredProducts.length / productsPageSize) || 1;
+      if (productsCurrentPage < totalPages) {
+        productsCurrentPage++;
+        updateProductsPagination();
+        scrollToProductsTop();
+      }
+    }
+
+    function scrollToProductsTop() {
+      const el = document.getElementById('tab-products');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function updateProductsPagination() {
+      const total = currentFilteredProducts.length;
+      const totalPages = Math.ceil(total / productsPageSize) || 1;
+      if (productsCurrentPage > totalPages) productsCurrentPage = totalPages;
+      if (productsCurrentPage < 1) productsCurrentPage = 1;
+
+      const startIdx = (productsCurrentPage - 1) * productsPageSize;
+      const endIdx = Math.min(startIdx + productsPageSize, total);
+      const pageItems = currentFilteredProducts.slice(startIdx, endIdx);
+
+      renderProductsTable(pageItems, startIdx);
+
+      const totalCountEl = document.getElementById('products-total-count');
+      const rangeEl = document.getElementById('products-range-display');
+      const curPageEl = document.getElementById('products-current-page');
+      const totalPagesEl = document.getElementById('products-total-pages');
+      const prevBtn = document.getElementById('btn-products-prev');
+      const nextBtn = document.getElementById('btn-products-next');
+
+      if (totalCountEl) totalCountEl.innerText = total.toLocaleString();
+      if (rangeEl) rangeEl.innerText = total === 0 ? "0 - 0" : `${(startIdx + 1).toLocaleString()} - ${endIdx.toLocaleString()}`;
+      if (curPageEl) curPageEl.innerText = productsCurrentPage;
+      if (totalPagesEl) totalPagesEl.innerText = totalPages;
+      if (prevBtn) prevBtn.disabled = (productsCurrentPage <= 1);
+      if (nextBtn) nextBtn.disabled = (productsCurrentPage >= totalPages);
+
+      if (window.lucide) {
+        lucide.createIcons({ root: document.getElementById('tab-products') });
+      }
+    }
+
+    function renderProductsTable(prods, startIdx = 0) {
       const tbody = document.getElementById('products-tbody');
       tbody.innerHTML = '';
       if (prods.length === 0) {
@@ -1985,7 +2086,7 @@
         const tr = document.createElement('tr');
         tr.className = 'group hover:bg-slate-50 transition border-b border-slate-100';
         tr.innerHTML = `
-          <td class="py-2.5 px-3 text-center font-mono text-slate-500 font-bold whitespace-nowrap">${idx + 1}</td>
+          <td class="py-2.5 px-3 text-center font-mono text-slate-500 font-bold whitespace-nowrap">${startIdx + idx + 1}</td>
           <td class="py-2.5 px-2 text-center">${imgThumb}</td>
           <td class="py-2.5 px-3 font-mono font-bold text-[#881337] text-center whitespace-nowrap w-32 max-w-[140px] truncate" title="${p.barcode}">${p.barcode}</td>
           <td class="py-2.5 px-2 font-mono font-bold text-amber-800 text-center whitespace-nowrap">#${p.short_code || '--'}</td>
@@ -2088,7 +2189,9 @@
           (p.location && p.location.toLowerCase().includes(q))
         );
       }
-      renderProductsTable(list);
+      currentFilteredProducts = list;
+      productsCurrentPage = 1;
+      updateProductsPagination();
     }
 
     function generateNext4DigitCode() {

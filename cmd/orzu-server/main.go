@@ -51,16 +51,26 @@ func main() {
 	})
 
 	// Mahalliy diskdagi web fayllarni ulash (Jonli yangilanishlar uchun)
+	var localWebDir string
 	localWebDirs := []string{`D:\ORZU_POS\web`, `web`}
 	for _, ldir := range localWebDirs {
 		if fi, err := os.Stat(ldir); err == nil && fi.IsDir() {
-			app.Static("/shared", filepath.Join(ldir, "shared"), fiber.Static{
-				Compress:  false,
-				ByteRange: true,
-				MaxAge:    0,
-			})
+			localWebDir = ldir
 			break
 		}
+	}
+
+	if localWebDir != "" {
+		app.Static("/shared", filepath.Join(localWebDir, "shared"), fiber.Static{
+			ByteRange: true,
+		})
+		app.Static("/icons", filepath.Join(localWebDir, "icons"), fiber.Static{
+			ByteRange: true,
+		})
+		app.Static("/admin", filepath.Join(localWebDir, "admin", "index.html"))
+		app.Static("/db", filepath.Join(localWebDir, "db", "index.html"))
+		app.Static("/backup", filepath.Join(localWebDir, "backup", "index.html"))
+		app.Static("/", filepath.Join(localWebDir, "kassa", "index.html"))
 	}
 
 	// Embedded veb interfeyslarni ulash (Zaxira sifatida)
