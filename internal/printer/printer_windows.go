@@ -402,48 +402,57 @@ func PrintReceipt(req ReceiptRequest) (string, error) {
 	return printerName, nil
 }
 
-// BuildEscPos40x30Label constructs an ultra-compact binary ESC/POS label for 40x30 mm stickers
-func BuildEscPos40x30Label(req LabelRequest) []byte {
+// BuildTsplLabel constructs native TSPL commands for 40x30 mm barcode stickers (Hardware Label Mode)
+func BuildTsplLabel(req LabelRequest) []byte {
 	var buf bytes.Buffer
 
-	// 1. Initialize & Center & Compact line spacing (18 dots)
-	buf.Write([]byte("\x1b\x40"))     // Initialize printer
-	buf.Write([]byte("\x1b\x61\x01")) // Center alignment
-	buf.Write([]byte("\x1b\x33\x12")) // Line spacing 18 dots (compact)
+	// 1. Label dimensions: 40mm width, 30mm height, 2mm gap (standard barcode sticker)
+	buf.WriteString("SIZE 40 mm, 30 mm\r\n")
+	buf.WriteString("GAP 2 mm, 0 mm\r\n")
+	buf.WriteString("DIRECTION 1\r\n")
+	buf.WriteString("REFERENCE 0,0\r\n")
+	buf.WriteString("CLS\r\n")
 
-	// 2. Store Name (Font B, Bold, max 18 chars to fit 40mm)
+	// Total width: 320 dots, Total height: 240 dots (203 DPI)
+
+	// 2. Store Name (Font 2: 12x20 dots, centered)
 	if req.ShowStore {
 		storeName := strings.TrimSpace(req.StoreName)
 		if storeName == "" {
 			storeName = "OLMOS ORZU MARKET"
 		}
-		if len(storeName) > 18 {
-			storeName = storeName[:18]
+		if len(storeName) > 22 {
+			storeName = storeName[:22]
 		}
-		buf.Write([]byte("\x1b\x4d\x01")) // Font B (9x17 dots, fits 40mm)
-		buf.Write([]byte("\x1b\x45\x01")) // Bold ON
-		buf.WriteString(strings.ToUpper(storeName) + "\n")
-		buf.Write([]byte("\x1b\x45\x00")) // Bold OFF
-		buf.Write([]byte("\x1b\x4d\x00")) // Font A
+		x := (320 - len(storeName)*12) / 2
+		if x < 10 {
+			x = 10
+		}
+		buf.WriteString(fmt.Sprintf("TEXT %d,12,\"2\",0,1,1,\"%s\"\r\n", x, strings.ToUpper(storeName)))
 	}
 
-	// 3. Product Name (Font A, Bold, max 16 chars to avoid horizontal overflow)
+	// 3. Product Name (Font 2: 12x20 dots, centered)
 	name := strings.TrimSpace(req.Name)
-	if len(name) > 16 {
-		name = name[:16]
+	if len(name) > 20 {
+		name = name[:20]
 	}
-	buf.Write([]byte("\x1b\x45\x01")) // Bold ON
-	buf.WriteString(name + "\n")
-	buf.Write([]byte("\x1b\x45\x00")) // Bold OFF
+	xName := (320 - len(name)*12) / 2
+	if xName < 10 {
+		xName = 10
+	}
+	yName := 40
+	if !req.ShowStore {
+		yName = 20
+	}
+	buf.WriteString(fmt.Sprintf("TEXT %d,%d,\"2\",0,1,1,\"%s\"\r\n", xName, yName, name))
 
-	// 4. Barcode (Height: 36 dots, Width: 2, HRI Font B below)
+	// 4. Barcode (Centered: 65 for EAN-13, 93 for EAN-8)
 	code := strings.TrimSpace(req.Barcode)
+	yBarcode := 70
+	if !req.ShowStore {
+		yBarcode = 50
+	}
 	if code != "" {
-		buf.Write([]byte("\x1d\x68\x24")) // Barcode height 36 dots
-		buf.Write([]byte("\x1d\x77\x02")) // Barcode width 2 dots
-		buf.Write([]byte("\x1d\x48\x02")) // HRI font below barcode
-		buf.Write([]byte("\x1d\x66\x01")) // HRI Font B (compact)
-
 		isDigits := true
 		for _, r := range code {
 			if r < '0' || r > '9' {
@@ -451,38 +460,45 @@ func BuildEscPos40x30Label(req LabelRequest) []byte {
 				break
 			}
 		}
-
 		if len(code) == 13 && isDigits {
-			// EAN-13 (Format B: GS k 67 13 [13-digits])
-			buf.Write([]byte{0x1d, 0x6b, 0x43, 0x0d})
-			buf.WriteString(code)
+			// EAN-13: 95 modules * 2 dots = 190 dots. Centered: (320-190)/2 = 65
+			buf.WriteString(fmt.Sprintf("BARCODE 65,%d,\"EAN13\",50,1,0,2,2,\"%s\"\r\n", yBarcode, code))
 		} else if len(code) == 8 && isDigits {
-			// EAN-8 (Format B: GS k 68 8 [8-digits])
-			buf.Write([]byte{0x1d, 0x6b, 0x44, 0x08})
-			buf.WriteString(code)
+			// EAN-8: 67 modules * 2 dots = 134 dots. Centered: (320-134)/2 = 93
+			buf.WriteString(fmt.Sprintf("BARCODE 93,%d,\"EAN8\",50,1,0,2,2,\"%s\"\r\n", yBarcode, code))
 		} else {
-			// Code 128 (Subset B)
-			payload := append([]byte{0x7b, 0x42}, []byte(code)...)
-			buf.Write([]byte{0x1d, 0x6b, 0x49, byte(len(payload))})
-			buf.Write(payload)
+			// Code 128:
+			xCode := 45
+			if len(code) < 10 {
+				xCode = 60
+			}
+			buf.WriteString(fmt.Sprintf("BARCODE %d,%d,\"128\",50,1,0,2,2,\"%s\"\r\n", xCode, yBarcode, code))
 		}
-		buf.WriteString("\n")
 	}
 
-	// 5. Price (Double Height ONLY, Single Width, Bold)
+	// 5. Price (Font 3: 16x24 dots, centered)
 	if req.ShowPrice && req.Price > 0 {
-		buf.Write([]byte("\x1b\x45\x01")) // Bold ON
-		buf.Write([]byte("\x1d\x21\x01")) // Double Height ONLY (Normal width = Never overflows 40mm)
-		buf.WriteString(fmt.Sprintf("%s so'm\n", FormatMoney(req.Price)))
-		buf.Write([]byte("\x1d\x21\x00")) // Normal size
-		buf.Write([]byte("\x1b\x45\x00")) // Bold OFF
+		priceStr := fmt.Sprintf("%s so'm", FormatMoney(req.Price))
+		xPrice := (320 - len(priceStr)*16) / 2
+		if xPrice < 10 {
+			xPrice = 10
+		}
+		yPrice := 160
+		if code == "" {
+			yPrice = 110
+		}
+		buf.WriteString(fmt.Sprintf("TEXT %d,%d,\"3\",0,1,1,\"%s\"\r\n", xPrice, yPrice, priceStr))
 	}
 
-	// 6. Reset line spacing & feed forward to tear bar (pichoq / chiqish teshigiga chiqarish)
-	buf.Write([]byte("\x1b\x32"))
-	buf.WriteString("\n\n\n\n")
-
-	return buf.Bytes()
+	// 6. Native hardware print copies
+	copies := req.Copies
+	if copies <= 0 {
+		copies = 1
+	}
+	if copies > 100 {
+		copies = 100
+	}
+	buf.WriteString(fmt.Sprintf("PRINT %d,1\r\n", copies))
 
 	return buf.Bytes()
 }
@@ -502,23 +518,25 @@ func PrintLabel(req LabelRequest) (string, error) {
 		copies = 100
 	}
 
-	var batch bytes.Buffer
-	for i := 0; i < copies; i++ {
-		if req.LabelWidth == "40x30" || req.LabelWidth == "40" {
-			batch.Write(BuildEscPos40x30Label(req))
-		} else {
-			batch.Write(BuildEscPosSingleLabel(req))
+	var data []byte
+	// 40x30 mm uses native TSPL hardware commands for Xprinter label mode
+	if req.LabelWidth == "40x30" || req.LabelWidth == "40" {
+		data = BuildTsplLabel(req)
+	} else {
+		var batch bytes.Buffer
+		singleBytes := BuildEscPosSingleLabel(req)
+		for i := 0; i < copies; i++ {
+			batch.Write(singleBytes)
 		}
-	}
-
-	// If individual autocut was requested and not 40mm
-	if req.AutoCut && req.LabelWidth != "40x30" && req.LabelWidth != "40" {
-		batch.WriteString("\n\n")
-		batch.Write([]byte("\x1d\x56\x41\x02"))
+		if !req.AutoCut {
+			batch.WriteString("\n\n")
+			batch.Write([]byte("\x1d\x56\x41\x02"))
+		}
+		data = batch.Bytes()
 	}
 
 	docName := fmt.Sprintf("ORZU POS Yorliq - %s (%d nusxa)", req.Name, copies)
-	err = PrintRawBytes(printerName, docName, batch.Bytes())
+	err = PrintRawBytes(printerName, docName, data)
 	if err != nil {
 		return printerName, err
 	}
