@@ -42,6 +42,8 @@
   window.addEventListener('beforeunload', sendLeaveHeartbeat);
   window.addEventListener('pagehide', sendLeaveHeartbeat);
 
+  let lastTabsFingerprint = "";
+
   async function updateTabs() {
     const container = document.getElementById('orzu-app-tabs');
     if (!container) return;
@@ -50,6 +52,12 @@
       const res = await fetch('/api/apps-status');
       if (!res.ok) return;
       const status = await res.json();
+
+      const fingerprint = JSON.stringify(status);
+      if (fingerprint === lastTabsFingerprint && container.children.length > 0) {
+        return; // Hech narsa o'zgarmagan bo'lsa, DOM ga ortiqcha tegmaymiz (Lag bo'lmasligi uchun)
+      }
+      lastTabsFingerprint = fingerprint;
 
       // Determine which apps to show in the tabs bar:
       // Show an app tab IF: it is active OR it is the current app
@@ -118,7 +126,9 @@
       html += '</div>';
 
       container.innerHTML = html;
-      if (window.lucide) lucide.createIcons();
+      if (window.lucide) {
+        lucide.createIcons({ root: container });
+      }
     } catch (e) {}
   }
 
@@ -152,9 +162,9 @@
     }
   });
 
-  // Start heartbeat (every 3 seconds) and tabs updater
+  // Start heartbeat (every 6 seconds) and tabs updater (every 5 seconds)
   sendHeartbeat();
-  setInterval(sendHeartbeat, 3000);
+  setInterval(sendHeartbeat, 6000);
   updateTabs();
-  setInterval(updateTabs, 2500);
+  setInterval(updateTabs, 5000);
 })();

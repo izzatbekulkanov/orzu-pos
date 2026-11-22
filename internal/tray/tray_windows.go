@@ -271,7 +271,12 @@ func OpenApp(url string) {
 		`--user-data-dir=D:\ORZU_POS\data\kassa_profile`,
 		"--no-first-run",
 		"--no-default-browser-check",
-		"--disable-features=TranslateUI",
+		"--disable-background-networking",
+		"--disable-sync",
+		"--disable-extensions",
+		"--disable-component-update",
+		"--disable-default-apps",
+		"--disable-features=TranslateUI,BackForwardCache,CalculateNativeWinOcclusion,InterestFeedContentSuggestions",
 		"--force-dark-mode",
 		"--start-maximized",
 	}

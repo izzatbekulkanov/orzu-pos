@@ -39,10 +39,10 @@ func main() {
 	// 2. API marshrutlarini sozlash
 	api.SetupRoutes(app)
 
-	// 3. Keshni o'chirish middleware (Touch monoblok va brauzerlar har doim yangi fayllarni olishi uchun)
+	// 3. Keshni oqilona boshqarish: HTML har doim yangi bo'lsin, og'ir JS/CSS kutubxonalari esa xotirada keshlanib tez yuklansin
 	app.Use(func(c *fiber.Ctx) error {
 		path := c.Path()
-		if strings.HasPrefix(path, "/shared/") || strings.HasSuffix(path, ".html") || strings.HasSuffix(path, ".js") {
+		if strings.HasSuffix(path, ".html") || path == "/" || path == "/admin" || path == "/db" || path == "/backup" {
 			c.Set("Cache-Control", "no-cache, no-store, must-revalidate")
 			c.Set("Pragma", "no-cache")
 			c.Set("Expires", "0")

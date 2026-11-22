@@ -71,6 +71,21 @@ func InitDB() (*gorm.DB, error) {
 		}
 	}
 
+	// SQLite uchun yuqori unumdorlik sozlamalari (WAL mode, xotira keshi, tezkor so'rovlar)
+	if dbType != "postgres" {
+		if sqlDB, err := db.DB(); err == nil {
+			sqlDB.SetMaxOpenConns(1)
+			sqlDB.SetMaxIdleConns(1)
+			sqlDB.SetConnMaxLifetime(0)
+		}
+		db.Exec("PRAGMA journal_mode = WAL;")
+		db.Exec("PRAGMA synchronous = NORMAL;")
+		db.Exec("PRAGMA temp_store = MEMORY;")
+		db.Exec("PRAGMA cache_size = -64000;")
+		db.Exec("PRAGMA mmap_size = 30000000000;")
+		db.Exec("PRAGMA busy_timeout = 5000;")
+	}
+
 	// Migratsiyalarni amalga oshirish
 	log.Println("[Database] Jadvallar migratsiyasi tekshirilmoqda...")
 	err = db.AutoMigrate(

@@ -725,9 +725,9 @@
       await loadCustomers();
       setupBarcodeInput();
 
-      // Real-time auto catalog sync with Boshqaruv (Admin)
+      // Real-time auto catalog sync with Boshqaruv (Admin) - instant via BroadcastChannel, backup poll every 10s
       syncCatalog(true);
-      setInterval(() => syncCatalog(false), 2000);
+      setInterval(() => syncCatalog(false), 10000);
       window.addEventListener('focus', () => syncCatalog(true));
       try {
         const catCh = new BroadcastChannel('orzu_catalog_channel');
@@ -1168,9 +1168,10 @@
           refocusBarcodeInput();
         };
 
-        const imgHtml = p.image_url 
-          ? `<img src="${p.image_url}" alt="${p.name}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0">` 
-          : `<div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0"><i data-lucide="package" class="w-5 h-5"></i></div>`;
+        const hasImg = p.image_url && (p.image_url.startsWith('/') || p.image_url.startsWith('http') || p.image_url.startsWith('data:'));
+        const imgHtml = hasImg 
+          ? `<img src="${p.image_url}" alt="${p.name}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0" loading="lazy">` 
+          : `<div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0"><svg class="w-5 h-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg></div>`;
 
         card.innerHTML = `
           <div>
@@ -1187,7 +1188,7 @@
             </div>
             ${p.location ? `
               <div class="flex items-center gap-1 text-[10px] font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 w-max mb-1">
-                <i data-lucide="map-pin" class="w-3 h-3 text-amber-600 shrink-0"></i>
+                <svg class="w-3 h-3 text-amber-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                 <span class="truncate max-w-[130px]">${p.location}</span>
               </div>
             ` : ''}
@@ -1199,7 +1200,7 @@
         `;
         grid.appendChild(card);
       });
-      lucide.createIcons();
+      // Pure HTML rendered - no global DOM search needed
     }
 
     // ==========================================
@@ -1386,7 +1387,7 @@
           <div class="col-span-2 flex items-center justify-end gap-1.5 pr-1">
             <span class="font-mono font-extrabold text-xs text-[#881337]">${itemTotal.toLocaleString()}</span>
             <button onclick="removeCartItem(${idx})" class="text-slate-400 hover:text-red-600 p-1 rounded transition cursor-pointer">
-              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </button>
           </div>
         `;
@@ -1395,7 +1396,7 @@
 
       currentTotal = total;
       updateTotals(totalQty);
-      lucide.createIcons();
+      // Fast synchronous update - no lucide icon scan needed
     }
 
     function updateTotals(qty = 0) {
